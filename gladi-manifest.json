@@ -1,0 +1,502 @@
+{
+  "owner": "snacc-v001.testnet",
+  "signer": "snacc-v001.testnet",
+  "counterparty": "x207-demo-buyer.testnet",
+  "strain_ids": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "token_ids": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+  ],
+  "supply_before": "0",
+  "temp_before": 0,
+  "tee_chat_id": "2684a62ba4c64592bee6bfddd9a1f473",
+  "actions": [
+    {
+      "kpi": "G-01",
+      "txHash": "GyqJPisauHaehAcjH8mZCNTrtYhS8MXUGH9T1WstbKoN",
+      "signer": "snacc-v001.testnet",
+      "note": "incubate Extractor (strain 1)"
+    },
+    {
+      "kpi": "PREP",
+      "txHash": "DqtZaVaSGVpfeEnESyKpuo8bvC5P1W9Sq1w1n5nsSnam",
+      "signer": "snacc-v001.testnet",
+      "note": "incubate Fermenter (strain 2)"
+    },
+    {
+      "kpi": "PREP",
+      "txHash": "3SGnYe4kooHVDKPHSTAmNDQB5GHHWrWeTE8HJ8wRzEZ8",
+      "signer": "snacc-v001.testnet",
+      "note": "incubate Synthesizer (strain 3)"
+    },
+    {
+      "kpi": "G-03",
+      "txHash": "D9m2w4JgAoNbjMXkPJHY1qFRFb7rhQJUBbkaJ2vsdgS1",
+      "signer": "snacc-v001.testnet",
+      "note": "feed strain 1 (4×10^15)"
+    },
+    {
+      "kpi": "G-05",
+      "txHash": "GPu7dmTE4v8fDD4j2FX7gGMdXCsevdcFfycXMG9Z1w35",
+      "signer": "snacc-v001.testnet",
+      "note": "register_attested_signer"
+    },
+    {
+      "kpi": "G-05",
+      "txHash": "HwmdggtNXGxMLyz5jdJ1DTsMgBx3jBak26mkHNrEcxXD",
+      "signer": "snacc-v001.testnet",
+      "note": "commit_genome_experiment (strain 1)"
+    },
+    {
+      "kpi": "G-05",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "CNhhdEbHd229TU3wDfhySTHuM7JvEvAN1vQcs3qRR5Lx",
+      "signer": "snacc-v001.testnet",
+      "note": "extract ignis"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "FyGgHZ4t3QSCZmAUEtdAgwAYQKZFAJPYMbMu9NEJWS3Z",
+      "signer": "snacc-v001.testnet",
+      "note": "extract lumin"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-13",
+      "txHash": "G2UZG95WSDBPryDKGhbLdJHYEYKsA3MppRjJTSuaBS5D",
+      "signer": "snacc-v001.testnet",
+      "note": "npc_buy_spores (npc-extractor, 50)"
+    },
+    {
+      "kpi": "G-17",
+      "txHash": "FakVfyiLRF2EmcTN9z5DFwxumDsRGymrbMaxkWU3trLn",
+      "signer": "snacc-v001.testnet",
+      "note": "ft_burn (10^15 $SNACC)"
+    },
+    {
+      "kpi": "G-06",
+      "txHash": "FDWRaf2ydJXa23XjeGJbSWqEYC3ogPiGYdS11qKSoggP",
+      "signer": "snacc-v001.testnet",
+      "note": "splice (1 absorbs 2)"
+    },
+    {
+      "kpi": "G-06",
+      "txHash": "37aHp3bBTpo3U79jNuBAXkS2PPrpWZLvBffB3fqGtnyE",
+      "signer": "snacc-v001.testnet",
+      "note": "splice (1 absorbs 3)"
+    },
+    {
+      "kpi": "G-09",
+      "txHash": "J1XbTVEhUP7XNSmPDvqzCuDK5xCdXkSpDbPvnkzu61VT",
+      "signer": "snacc-v001.testnet",
+      "note": "divide_strain (anak = strain 4)"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-19",
+      "txHash": "5WRJ3etNUiGa9kQEoqeADHoA88BDcW27t8pJgbATJdAi",
+      "signer": "snacc-v001.testnet",
+      "note": "advance_epoch (tutup epoch 0)"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-19",
+      "txHash": "GiRD2hB4QXaSJxGGasUV3W8jPwxZkrCNdEv5qU3WzSux",
+      "signer": "snacc-v001.testnet",
+      "note": "advance_epoch ke-2"
+    },
+    {
+      "kpi": "G-21",
+      "txHash": "iADcpsuWQUE4MWHfBnwhKvNjiawSRBEBg93sFeLgJqz",
+      "signer": "snacc-v001.testnet",
+      "note": "materialize_subaccount (deposit 20 mN)"
+    },
+    {
+      "kpi": "G-02",
+      "txHash": null,
+      "note": "saldo akun 0"
+    },
+    {
+      "kpi": "G-15",
+      "txHash": "3fM5iK4dLLWiyHBAM2wqdMVHQbgLxc4VVsxndBZunFFm",
+      "signer": "snacc-v001.testnet",
+      "note": "nft_transfer (strain 4 → x207-demo-buyer)"
+    },
+    {
+      "kpi": "G-07",
+      "txHash": null,
+      "note": "menunggu pembusukan BMR (Distressed window) — waktu nyata"
+    },
+    {
+      "kpi": "G-08",
+      "txHash": null,
+      "note": "menunggu pembusukan BMR (Distressed window) — waktu nyata"
+    },
+    {
+      "kpi": "G-10",
+      "txHash": null,
+      "note": "menunggu pembusukan BMR (Distressed window) — waktu nyata"
+    },
+    {
+      "kpi": "G-05",
+      "txHash": "BFpjSQTjYuHL55AqGCXeW7fwahAizXRu5ZwLSTdE3kEv",
+      "signer": "snacc-v001.testnet",
+      "note": "apply_tee_mutation (chat baru, req sama)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "9kf9Dtuvxkx4mkpFcJcKCEun1aKTUaaF5pK91RubsPUQ",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (iterasi 1)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "HMpKk7hwhtZj8b1okAuR7gyJt56B6CoJfCDBBaZfZsuv",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (iterasi 2)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "DeGnbgCtxKx74Cftt6iZhBRf1TYvEthrarBkbgVvGTYM",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (iterasi 3)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "F9uTS8DpZqTQM8HxR5nMSzXU7eo8CYXYVxnKDWZbbyUZ",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (iterasi 4)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "Ag71EgGZ3LLK1thmU7y3seWUzM5HacnGUXvTeeFWfbZS",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (iterasi 5)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "EutTEoCPGwjQDiiS3aBV2TkjVDetkEZe8Qtzp1YSNYfn",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (iterasi 6)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "CQ9DndtfB9G1d1BBfrSRMv7MQMSQCMpga3u5H3wyaxUr",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (iterasi 7)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "HXXrQLjasSBBoVhJsCHr8oz4HxQ3kSELyTJZq5tZ1zK6",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (iterasi 8)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "WfXrVezY8ssUUU43JqtRgJtm9xDvwxFwEJFX1WRqkCP",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep2 → redactase"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "J2b1wGKZYTK2ZzLnuGPtLKnduoAk93uG6oGXFUK2qHKJ",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute habiskan ignis (burn=52)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "HZAAwS8CrFEFqbBivHfi1vLYbW7dhqyaSppws6szZqRG",
+      "signer": "snacc-v001.testnet",
+      "note": "extract 1 ignis"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "Htx8cxDKrNAck4wJGi4Z6hgtFtdm5Xaub5BSP6s71Bgx",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep2 → REDACTASE"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "FHoCjjYTdnck3YoMh9CiVVaTF2iZ3LUfvHkqo7RpAcuN",
+      "signer": "snacc-v001.testnet",
+      "note": "synthesize elixir-homeostasis"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "PREP",
+      "txHash": "9RCVSPXaFuX5mb6RKn4xdWuNHrR7rU9PBZnci3tFmisD",
+      "signer": "snacc-v001.testnet",
+      "note": "incubate Synthesizer (strain 5)"
+    },
+    {
+      "kpi": "G-05",
+      "txHash": "ExjLbB45JBBJKmGR1tND5dFxrWLwYh8Qikf37jRF1XCR",
+      "signer": "snacc-v001.testnet",
+      "note": "commit_genome_experiment (strain 5)"
+    },
+    {
+      "kpi": "G-05",
+      "txHash": "BqPy3ndKXtxeGSvhQyiiv2qDdMtzKGio5kN96Cq9PQye",
+      "signer": "snacc-v001.testnet",
+      "note": "apply_tee_mutation (phenotype_trait)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-19",
+      "txHash": "8iU7HDC67mHmCX5WErsCUPntiN7eUoXZKQy8xfjemy53",
+      "signer": "snacc-v001.testnet",
+      "note": "advance_epoch"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-06",
+      "txHash": "4n1r2rA4ceZTr7v8asFcZcEKg5DRoaGHSt998AtKoCPs",
+      "signer": "snacc-v001.testnet",
+      "note": "splice (5 absorbs 1 — role+inventori menyatu)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "FDnYLDqtgm2FsVJg1eMDkh5mCvvt8PzapS5Ev9J8VSgj",
+      "signer": "snacc-v001.testnet",
+      "note": "extract cryo (strain 5)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "9FpumptS8RgQhNmYGagnDYTyqVY6TNi4bNHkU1WexmJi",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute habiskan ignis (strain 5)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-19",
+      "txHash": "8HMiQe1roPAu7skBS6jn7RWrMGHWWGxQ9t8kGw3TYuen",
+      "signer": "snacc-v001.testnet",
+      "note": "advance_epoch (tutup epoch kontribusi)"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "29PkYsJDamD1trpqndQi5UE7CtYjjFmhEDiQssNd7csb",
+      "signer": "snacc-v001.testnet",
+      "note": "extract cryo ke-2"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "5MjMdL9Exrr2hhuVzdqbfhdJwVTWuwF1zbZRwGTUAiYY",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute cryo→synthase"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "3wCubACsn8KZYc8h9JSF85YM12VFMgtNWBhESM3z9uuE",
+      "signer": "snacc-v001.testnet",
+      "note": "synthesize ELIXIR-AETHER"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": "8umhfAmX5g4pybRAbP6BQqXdcgoUBsGpoXv7fWM1LbpP",
+      "signer": "snacc-v001.testnet",
+      "note": "synthesize_and_redeem_aether"
+    },
+    {
+      "kpi": "G-19",
+      "txHash": "D1VzPiQtKyiL4Ph5Nwt7EkvmD3tuqMVFDtjBkpCZPnUC",
+      "signer": "snacc-v001.testnet",
+      "note": "advance_epoch"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-03",
+      "txHash": "DKiCD9b294gPbj79YpNJ4zhWiSjNsALXJ7G1SJ2J4zBP",
+      "signer": "snacc-v001.testnet",
+      "note": "feed besar (5×10^17 → atp_minted ≥1)"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+    },
+    {
+      "kpi": "G-11",
+      "txHash": "4zaVoRcLA3GQBzRLKxRpEfDYqgzRTfNehVbe3vH3jVNs",
+      "signer": "snacc-v001.testnet",
+      "note": "claim dividen (strain 5, epoch 4)"
+    },
+    {
+      "kpi": "G-18",
+      "txHash": "6ytHSFbgb9CbYJS5ReyUtwcpELHoGJWtt37xj4SEvwpE",
+      "signer": "snacc-v001.testnet",
+      "note": "advance_epoch (bukti dividend_inflow/feast)"
+    },
+    {
+      "kpi": "G-19",
+      "txHash": "HcAme8wYBdbQNWha8XdufamqaByuRQGWqaHRifVH6k5n",
+      "signer": "snacc-v001.testnet",
+      "note": "advance_epoch (feast_result terpisah)"
+    }
+  ]
+}
