@@ -18,8 +18,12 @@ import { createHash, createPublicKey, verify } from "node:crypto";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+// OPS-119: semua input dibaca dari DALAM repo payung (`evidence/`), bukan dari luar repo,
+// supaya `npm run verify:thesis` jalan dari clone bersih. ROOT = root payung (induk `scripts/`);
+// bisa di-override lewat SNACC_ROOT bila `scripts` dijalankan dari lokasi lain.
 const HERE = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(HERE, "../../..");
+const ROOT = process.env.SNACC_ROOT ? resolve(process.env.SNACC_ROOT) : resolve(HERE, "..");
+const TESTNET_RPC = process.env.SNACC_TESTNET_RPC ?? "https://test.rpc.fastnear.com";
 const T0 = Date.now();
 const CLAIM_COST_NEARN = 0.01734;
 const SVG_BYTES = 1734;
@@ -43,7 +47,7 @@ async function mainnetProtocolConfig() {
   throw new Error("semua RPC mainnet gagal");
 }
 const view = async (method, args = {}) => {
-  const r = await rpc("https://near-testnet.drpc.org", "query", {
+  const r = await rpc(TESTNET_RPC, "query", {
     request_type: "call_function", finality: "final",
     account_id: "snacc-v001.testnet", method_name: method,
     args_base64: Buffer.from(JSON.stringify(args)).toString("base64"),
@@ -76,7 +80,7 @@ try {
   const ts = await view("ft_total_supply");
   const supplyOk = num(ts) === num(macro.total_snacc_supply);
   const burned = num(macro.total_snacc_burned ?? 0);
-  const manifest = JSON.parse(readFileSync(resolve(ROOT, "reports/gladi-manifest.json"), "utf8"));
+  const manifest = JSON.parse(readFileSync(resolve(ROOT, "evidence/gladi-manifest.json"), "utf8"));
   const before = num(manifest.supply_before ?? 0);
   const burnedOk = burned > 0;
   const notAbovePeak = num(ts) <= num(manifest.supply_peak ?? ts) ;
@@ -88,7 +92,7 @@ try {
 
 // ---------- F-03: TEE zero-trust (verifikasi ulang vektor gladi) ----------
 try {
-  const v = JSON.parse(readFileSync(resolve(ROOT, "reports/tee-vector-live.json"), "utf8"));
+  const v = JSON.parse(readFileSync(resolve(ROOT, "evidence/tee-vector-live.json"), "utf8"));
   const resSha = createHash("sha256").update(v.raw_response_body).digest("hex");
   const signedText = `z-ai/glm-5.3-flash:${v.req_sha256_hex}:${resSha}`;
   const textOk = signedText === v.signed_text && resSha === v.res_sha256_hex;

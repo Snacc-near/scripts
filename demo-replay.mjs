@@ -7,11 +7,11 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(HERE, "../../..");
+const ROOT = process.env.SNACC_ROOT ? resolve(process.env.SNACC_ROOT) : resolve(HERE, ".."); // OPS-119: root payung, input dari evidence/
 const T0 = Date.now();
 
-const manifest = JSON.parse(readFileSync(resolve(ROOT, "reports/gladi-manifest.json"), "utf8"));
-const tee = JSON.parse(readFileSync(resolve(ROOT, "reports/tee-vector-live.json"), "utf8"));
+const manifest = JSON.parse(readFileSync(resolve(ROOT, "evidence/gladi-manifest.json"), "utf8"));
+const tee = JSON.parse(readFileSync(resolve(ROOT, "evidence/tee-vector-live.json"), "utf8"));
 
 // Narasi beat demo (urutan cerita — mapping ke KPI)
 const BEATS = [
