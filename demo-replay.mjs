@@ -28,6 +28,81 @@ const BEATS = [
   ["📊 Konsistensi & solvabilitas", ["G-12", "G-18", "G-20"], "`ft_total_supply == total_snacc_supply`; treasury tak pernah negatif; `V_epoch` hidup."],
 ];
 
+
+// - RES-103: tahap attestation TDX (DCAP) - mock-friendly, offline = DILEWATI.
+//   1) Fixture lokal (evidence/) lebih dulu; 2) live fetch best-effort (offline = warning);
+//   3) verifikasi offline via `dcap-qvl` BILA ada di PATH; kalau tidak -> DILEWATI + instruksi.
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+
+function dcapQvlTersedia() {
+  try {
+    execFileSync("which", ["dcap-qvl"], { stdio: "pipe" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function tahapAttestation() {
+  const baris = [];
+  let quote = null;
+  let sumber = null;
+  const fixturePaths = [
+    resolve(ROOT, "evidence/attestation-quote.json"),
+    resolve(ROOT, "evidence/tee-vector-live.json"),
+  ];
+  for (const p of fixturePaths) {
+    if (existsSync(p)) {
+      quote = JSON.parse(readFileSync(p, "utf8"));
+      sumber = p;
+      baris.push("- Fixture quote lokal: `" + p + "`");
+      break;
+    }
+  }
+  if (!quote) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 3000);
+      const res = await fetch("https://cloud-api.near.ai/v1/attestation/report", { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (res.ok) {
+        quote = await res.json();
+        sumber = "https://cloud-api.near.ai/v1/attestation/report (live)";
+        const out = resolve(ROOT, "evidence/attestation-quote.json");
+        mkdirSync(dirname(out), { recursive: true });
+        writeFileSync(out, JSON.stringify(quote, null, 2), "utf8");
+        baris.push("- Laporan attestation live diambil & disimpan: `" + out + "`");
+      } else {
+        baris.push("- Live fetch attestation: HTTP " + res.status + " - lanjut mode offline");
+      }
+    } catch (e) {
+      baris.push("- Live fetch attestation tidak tersedia (offline): " + String(e.message ?? e).slice(0, 90) + " - DILEWATI");
+    }
+  }
+  if (quote) {
+    if (dcapQvlTersedia()) {
+      try {
+        const qpath = resolve(ROOT, "evidence/attestation-quote.json");
+        if (!existsSync(qpath)) writeFileSync(qpath, JSON.stringify(quote, null, 2), "utf8");
+        const out = execFileSync("dcap-qvl", ["verify", qpath], { stdio: "pipe" }).toString();
+        baris.push("- `dcap-qvl verify`: " + out.trim().split(String.fromCharCode(10))[0]);
+      } catch (e) {
+        baris.push("- `dcap-qvl verify` gagal: " + String(e.message ?? e).slice(0, 90));
+      }
+    } else {
+      baris.push("- **Verifikasi DCAP offline: DILEWATI (dcap-qvl tidak terpasang)**");
+      baris.push("  - Instal: `cargo install dcap-qvl` (ikuti docs NEAR AI Cloud TDX attestation), lalu `npm run demo:replay` kembali.");
+    }
+  } else {
+    baris.push("- Tidak ada quote attestation (offline & tanpa fixture) - tahap dilewati");
+  }
+  baris.push("- Sumber quote: " + (sumber ?? "tidak ada"));
+  return baris;
+}
+
+const attestationBaris = await tahapAttestation();
+
 const rows = [];
 for (const [judul, kpis, narasi] of BEATS) {
   const acts = manifest.actions.filter((a) => kpis.includes(a.kpi) && a.txHash);
@@ -55,6 +130,9 @@ const md = [
   `- chat_id: \`${tee.chat_id}\` · signed_text: \`${tee.signed_text}\``,
   `- pubkey enclave: \`${tee.tee_pubkey_hex}\` — verifikasi ed25519 ulang ada di \`verify-thesis.mjs\` (F-03 LOLOS).`,
   ``,
+  `### RES-103 - Attestation TDX (DCAP)`,
+  ``,
+  ...attestationBaris.map((b) => `  ${b}`),
   `> Rekam ulang: \`node scripts/demo-replay.mjs\` — output deterministik dari file bukti.`,
 ].join("\n");
 
