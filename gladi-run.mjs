@@ -73,17 +73,29 @@ async function run() {
   await step("PREP", "incubate Extractor-2 (strain 4)", () => call("incubate_strain", { role: "Extractor", initial_snacc_stake: "250000000000000000000000", initial_spores: 10 }, 25n * 10n ** 22n));
   await step("PREP", "incubate Synthesizer-2 (strain 5 — target TEE)", () => call("incubate_strain", { role: "Synthesizer", initial_snacc_stake: "250000000000000000000000", initial_spores: 10 }, 25n * 10n ** 22n));
 
-  // 2) Makan → ATP (model ATP: EN-115 — atp_minted = feed/10^15 × eff × (10+mito)/10;
-  //    feed 5×10^17 → atp_minted ≥ 500 unit, cukup untuk seluruh rantai kerja:
-  //    extract/transmute/synthesize + allocate + divide + hostile).
-  await step("G-03", "feed strain 1 (5×10^17 — model ATP)", () => call("feed_strain", { strain_id: 1, amount: "500000000000000000" }));
+  // 1b) Cadangan target G-07/G-08/G-10: 3 strain ekstra (5,6,7) yang menua ALAMI —
+  //     BMR 100-150 vitality/jam → Distressed (eff ≤2000) ~53-80 jam → jendela
+  //     hostile/adopt/lisis terbuka Nov 10-11 (gladi-retry). Diinkubasi SEKARANG
+  //     supaya penuaan berjalan sepanjang waktu.
+  await step("PREP", "inkubasi target cadangan 5 (Extractor, menua untuk hostile)", () => call("incubate_strain", { role: "Extractor", initial_snacc_stake: "500000000000000000000000", initial_spores: 0 }, 5n * 10n ** 23n));
+  await step("PREP", "inkubasi target cadangan 6 (Fermenter, menua untuk adopt)", () => call("incubate_strain", { role: "Fermenter", initial_snacc_stake: "500000000000000000000000", initial_spores: 0 }, 5n * 10n ** 23n));
+  await step("PREP", "inkubasi target cadangan 7 (Synthesizer, menua untuk lisis)", () => call("incubate_strain", { role: "Synthesizer", initial_snacc_stake: "500000000000000000000000", initial_spores: 0 }, 5n * 10n ** 23n));
+  manifest.strain_ids = [1, 2, 3, 4, 5, 6, 7]; manifest.token_ids = ["1", "2", "3", "4", "5", "6", "7"];
+
+  // 2) Makan → ATP (model ATP: EN-115 — atp_minted = feed/10^15 × eff × (10+mito)/10)
+  //    + DK-026/judge-audit #2: feed PROPORSIONAL supaya termostat MENYALA live:
+  //    supply pasca-inkubasi (5 strain) = 3,5e24 yocto; feed 1,4e23×10 + 2,8e23
+  //    (+ jejak ATP ≈ 1,0e24) → V_epoch ≈ 3,2e24 → temp ≈ 914 mK → Fever (>610).
+  await step("G-03", "feed strain 1 (1,4e24 — proporsional, termostat)", () => call("feed_strain", { strain_id: 1, amount: "1400000000000000000000000" }));
+  await step("G-03", "feed strain 2 (2,8e23 — proporsional, termostat)", () => call("feed_strain", { strain_id: 2, amount: "280000000000000000000000" }));
   // BUKTI (c): V_epoch tepat setelah feed memuat jejak ATP: atp_minted×ATP_VOLUME_SCALE(6×10^14)
   // (EN-117 suhu literal ATP). Diambil SEKARANG — V_epoch ter-reset tiap advance_epoch.
   const macroFeed = await bukti("get_macro_state pasca-feed (V_epoch jejak ATP)", "get_macro_state");
+  await bukti("get_crucible_temp pasca-feed (harus > 610)", "get_crucible_temp");
   await bukti("get_global_solvency pasca-feed", "get_global_solvency");
   if (macroFeed) manifest.bukti_feed = {
-    volume_epoch: macroFeed.volume_epoch ?? null, temp_mk: macroFeed.current_temp_mk ?? null,
-    feed_amount: "500000000000000000", atp_minted_min: 500, ATP_VOLUME_SCALE: "600000000000000",
+    volume_epoch: macroFeed.volume_epoch ?? null, temp_mk: macroFeed.crucible_temp ?? null,
+    feed_amount: "1680000000000000000000000", atp_minted_min: 1680000000, ATP_VOLUME_SCALE: "600000000000000",
   };
 
   // (a) Alokasi ATP — efek organel (EN-119): mitokondria +10%/level minting ATP,
