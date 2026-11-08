@@ -34,7 +34,7 @@ function arg(name, dflt) {
   const i = argv.indexOf(`--${name}`);
   return i >= 0 && argv[i + 1] ? argv[i + 1] : dflt;
 }
-const RPC = arg("rpc", process.env.NEAR_RPC ?? "https://rpc.testnet.near.org");
+const RPC = arg("rpc", process.env.NEAR_RPC ?? "https://test.rpc.fastnear.com");
 const CONTRACT = arg("contract", process.env.CONTRACT_ID ?? "snacc-v001.testnet");
 const MANIFEST = resolve(HERE, arg("manifest", process.env.GLADI_MANIFEST ?? "../../../reports/gladi-manifest.json"));
 const OUT = resolve(HERE, "../../../reports/gladi-kpi.md");
@@ -42,7 +42,7 @@ const OUT = resolve(HERE, "../../../reports/gladi-kpi.md");
 class TxNotIndexed extends Error {}
 const usedHashes = new Map(); // hash -> kpi pertama (R2.4)
 const txCache = new Map(); // hash:signer -> proof (cache lintas-KPI)
-const RPCS = [RPC, "https://near-testnet.drpc.org", "https://rpc.testnet.near.org", "https://testnet.rpc.fastnear.com"];
+const RPCS = [RPC, "https://near-testnet.drpc.org", "https://test.rpc.fastnear.com"];
 
 // ---------- RPC (retry + fallback) ----------
 async function rpcCall(method, params) {
