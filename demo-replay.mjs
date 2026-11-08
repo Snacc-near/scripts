@@ -16,7 +16,7 @@ const tee = JSON.parse(readFileSync(resolve(ROOT, "reports/tee-vector-live.json"
 // Narasi beat demo (urutan cerita — mapping ke KPI)
 const BEATS = [
   ["🥚 Lahir", ["G-01"], "Tiga sel lahir berbeda peran (Extractor/Fermenter/Synthesizer) — `$SNACC` supply terbentuk dari stake NEAR."],
-  ["🍽️ Makan → ATP", ["G-03"], "Feed membakar `$SNACC` → membukukan `$ATP` (energi internal, non-transferable)."],
+  ["🍽️ Makan → ATP → Alokasi", ["G-03"], "Feed membakar `$SNACC` → membukukan `$ATP` (energi internal, non-transferable); suhu kini ATP-driven (EN-117: jejak atp_minted×6×10^14 masuk V_epoch). `allocate_atp` menyalakan organel (EN-119): mitokondria +10%/level minting ATP, nukleus +10%/level output, lisosom −10%/level BMR."],
   ["🧬 TEE zero-trust", ["G-05"], "Genom dieksekusi di NEAR AI Cloud TEE: kontrak memverifikasi ulang `ed25519` + anti-replay chat_id."],
   ["⚙️ Rantai produksi NEP-245", ["G-04"], "Spora → enzim (amalgam/redactase/synthase) → eliksir (`homeostasis` & `aether`) — biaya ATP per kerja."],
   ["🏪 NPC market-maker", ["G-13"], "Harga `P_base × S_target/S_after` — konservasi kas I-15."],
@@ -25,7 +25,8 @@ const BEATS = [
   ["💰 Dividen industri", ["G-11"], "`mt:elixir-aether` dibakar → kontribusi epoch → klaim pro-rata."],
   ["🏦 Vault sub-account", ["G-21"], "NFT punya rekening sendiri: `s-<id>.<akun-kontrak>`."],
   ["🫀 Transplantasi NFT", ["G-15"], "`nft_transfer` NEP-171 — NFT (sel hidup + perut + organel) berpindah pemilik."],
-  ["📊 Konsistensi & solvabilitas", ["G-12", "G-18", "G-20"], "`ft_total_supply == total_snacc_supply`; treasury tak pernah negatif; `V_epoch` hidup."],
+  ["📊 Konsistensi & solvabilitas", ["G-12", "G-18", "G-20"], "`ft_total_supply == total_snacc_supply`; treasury tak pernah negatif; `V_epoch` hidup (suhu ATP-driven — zona bisa berbeda dari gladi sebelumnya)."],
+  ["📜 Kepatuhan NEP", ["G-22"], "NEP-177 `nft_metadata` (spec nft-1.0.0) · NEP-145 `storage_deposit(registration_only)` + bounds · NEP-181 enumerasi `nft_tokens`/`nft_supply_for_owner` — pintu masuk dompet & marketplace."],
 ];
 
 

@@ -244,12 +244,27 @@ const KPI = [
       const pass = hasEvent(evs, "dividend_claimed") && (hasEvent(evs, "aether_burned_for_dividend") || hasEvent(evs, "dividend_inflow")) && allOk(rs);
       return { pass, bukti: proof ? `tx ${proof.hashes.join(",")}` : "tx belum ada" };
     } },
-  { id: "G-12", nama: "Termostat — suhu >0, `V_epoch` >0 (skala 5), `zone_changed` pernah terjadi", sumber: "ADR-04/27, ECON-111",
+  { id: "G-12", nama: "Termostat ATP-driven — suhu >0, `V_epoch` >0, jejak ATP ≥ atp_minted×6×10^14 (pasca-feed), `zone_changed` pernah terjadi", sumber: "ADR-04/27, ECON-111, EN-117",
     async check(m, proof) {
       const [temp, macro] = await Promise.all([view("get_crucible_temp"), view("get_macro_state")]);
       const rs = await allEvents(proof).catch(() => []);
-      const pass = Number(temp) > 0 && BigInt(macro.volume_epoch ?? 0) > 0n && hasEvent(flat(rs), "zone_changed") && allOk(rs);
-      return { pass, bukti: `temp=${temp} mK (before=${m.temp_before ?? "?"}) · V_epoch=${macro.volume_epoch}${proof ? ` · tx ${proof.hashes.join(",")}` : ""}` };
+      // EN-117 (suhu literal ATP): V_epoch epoch aktif saat feed memuat
+      // atp_minted × ATP_VOLUME_SCALE (6×10^14). V_epoch ter-reset tiap
+      // advance_epoch — verifikasi penuh lewat snapshot BUKTI pasca-feed
+      // (manifest.bukti_feed, direkam gladi-run TEPAT setelah tx feed).
+      let atpTrace = "";
+      let traceOk = true;
+      const bf = m.bukti_feed;
+      if (bf?.volume_epoch != null && bf?.atp_minted_min != null) {
+        const need = BigInt(bf.atp_minted_min) * BigInt(bf.ATP_VOLUME_SCALE ?? "600000000000000");
+        const got = BigInt(bf.volume_epoch);
+        traceOk = got >= need;
+        atpTrace = ` · jejak ATP pasca-feed: V_epoch=${got} ≥ atp_min(${bf.atp_minted_min})×6×10^14=${need} → ${traceOk ? "OK" : "KURANG"}`;
+      } else {
+        atpTrace = " · jejak ATP: bukti_feed belum di manifest (gladi v4)";
+      }
+      const pass = Number(temp) > 0 && BigInt(macro.volume_epoch ?? 0) > 0n && hasEvent(flat(rs), "zone_changed") && allOk(rs) && traceOk;
+      return { pass, bukti: `temp=${temp} mK (before=${m.temp_before ?? "?"}) · V_epoch=${macro.volume_epoch}${atpTrace}${proof ? ` · tx ${proof.hashes.join(",")}` : ""}` };
     } },
   { id: "G-13", nama: "NPC ADR-30 — `npc_spores_bought` + konservasi I-15", sumber: "ADR-30, I-15",
     async check(m, proof) {
@@ -372,7 +387,13 @@ async function main() {
     `angka Kamus diverifikasi (pajak 2,5% / premium 115% / bounty 10%) + hash unik anti-reuse.`,
     `$SNACC testnet tanpa nilai uang. Tanpa hash = tanpa klaim.`,
     ``,
-    `> **BATAS KLAIM (wajib dibaca):** PASS di sini = 21 MEKANIK YANG SUDAH DIIMPLEMENTASIKAN terverifikasi on-chain.`,
+    `> **BATAS KLAIM (wajib dibaca):** PASS di sini = MEKANIK YANG SUDAH DIIMPLEMENTASIKAN terverifikasi on-chain.`,
+    `> PERUBAHAN MAKNA KPI (model ATP, EN-117): G-12 kini memverifikasi jejak ATP`,
+    `> (atp_minted × 6×10^14) pada V_epoch SNAPSHOT PASCA-FEED (manifest.bukti_feed) —`,
+    `> V_epoch ter-reset tiap advance_epoch, jadi nilai V_epoch AKHIR BUKAN bukti jejak ATP.`,
+    `> Zona bisa saja berbeda dari gladi sebelumnya (suhu kini digerakkan ATP + legs).`,
+    `> NEP-177/145/181 baru (nft_metadata · storage_unregister/balance_bounds/registration_only ·`,
+    `> enumerasi nft_*) BELUM punya KPI — gladi-run mencatatnya sebagai G-22 (saran, menunggu arahan).`,
     `> Ini BUKAN checklist kelengkapan produk. Yang TIDAK diuji di sini (dan harus dicek di Backlog Master):`,
     `> SDK lengkap (\`SDK-101..106\`), audit keamanan (\`SEC-110..118\`), integrasi NEAR AI (\`RES-101..103\` — Inference SDK,`,
     `> privacy/classify, verifikasi quote TDX), docs (\`DOC-*\`), ECON tails, e2e penuh, FE, video.`,
