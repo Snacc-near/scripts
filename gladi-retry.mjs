@@ -5,14 +5,18 @@
  *   node scripts/gladi-retry.mjs                 # = --preflight: HANYA view call (tanpa transaksi)
  *   node scripts/gladi-retry.mjs --preflight
  *   node scripts/gladi-retry.mjs --execute [--only G-07,G-08] [--wait] [--force]
- *   node scripts/gladi-retry.mjs --dry-run [--force] [--only G-07,...]   # (boleh bersama --execute)
+ *   node scripts/gladi-retry.mjs --execute --advance   # majukan jam sandbox kontrak (advance_sandbox_clock) sampai tiap jendela terbuka
+ *   node scripts/gladi-retry.mjs --dry-run [--force] [--only G-07,...] [--advance]   # (boleh bersama --execute)
  *
- * Rencana (manifest `RENCANA GLADI-RETRY`):
- *   G-07 hostile   raider = strain 4 (milik x207-demo-buyer; buyer menandatangani) -> target strain 6
- *                  (jendela Distressed 1..=2000 effective_vitality); seller 95% -> pemilik strain 6.
+ * Waktu kontrak = waktu blok + offset jam sandbox (`get_sandbox_clock`). Tanpa --advance skrip menunggu waktu nyata
+ * (--wait); dengan --advance (hanya akun .testnet, pemanggil = owner) jam dimajukan seperlunya (+ pembulatan ke atas 1 jam).
+ *
+ * Rencana (rencana id gladi-run v5):
+ *   G-07 hostile   raider = strain 4 (milik x207-demo-buyer; buyer menandatangani) -> target strain 7
+ *                  (jendela Distressed 1..=2000 effective_vitality); seller 95% -> pemilik strain 7.
  *   G-02 ft_transfer 1000 yocto $SNACC dari saldo akun kontrak (hasil payout G-07/G-08/G-10) -> buyer.
- *   G-08 adopt     adopter = strain 7 -> target strain 8 (jendela Distressed), book_value 100% ke pemilik lama.
- *   G-10 lisis     harvest_starving_strain(8) saat effective_vitality == 0 (Tier 3).
+ *   G-08 adopt     adopter = strain 8 -> target strain 9 (milik buyer; jendela Distressed), book_value 100% ke pemilik lama.
+ *   G-10 lisis     harvest_starving_strain(9) saat effective_vitality == 0 (Tier 3).
  *
  * Preflight menghitung jam UTC paling awal tiap KPI dari rumus kontrak (state.rs `effective_vitality`):
  *   bmr_eff = bmr_per_hour * (10000 - 1000*lisosom) / 10000        (LYSOSOME_BMR_BPS_PER_LEVEL = 1000)
@@ -66,7 +70,8 @@ const KEY_BUYER = resolve(ROOT, ".secrets/testnet-demo/testnet/x207-demo-buyer.t
 const DEFAULT_MANIFEST = resolve(ROOT, "reports/gladi-manifest.json");
 const MANIFEST = resolve(process.env.GLADI_MANIFEST ?? DEFAULT_MANIFEST);   // override HANYA utk uji (salinan sementara)
 const LIB_RS = resolve(here, "../contracts/snacc/src/lib.rs");
-const RAIDER_HOSTILE = 4, TARGET_HOSTILE = 6, ADOPTER = 7, TARGET_ADOPT = 8, TARGET_LYSIS = 8;
+// Rencana id gladi-run v5: 4 = raider (milik buyer), 7 = target hostile, 8 = pengadopsi, 9 = target adopt (milik buyer) lalu lisis.
+const RAIDER_HOSTILE = 4, TARGET_HOSTILE = 7, ADOPTER = 8, TARGET_ADOPT = 9, TARGET_LYSIS = 9;
 const DISTRESSED_MAX = 2000;            // I-09: 1..=2000
 const LYSOSOME_BPS_PER_LEVEL = 1000;    // EN-119
 const HOSTILE_PREMIUM_BPS = 1500, BPS = 10000, HOSTILE_SELLER_BPS = 9500, MOLECULE_FLOOR_PRICE = 1n;
@@ -85,6 +90,8 @@ const SIGNERS = { main: { id: CONTRACT, key: KEY_MAIN }, buyer: { id: BUYER, key
 const A = {
   hostile: (nonce) => ({ kpi: "G-07", who: "buyer", method: "hostile_takeover_splice", args: { raider_strain_id: RAIDER_HOSTILE, distressed_target_id: TARGET_HOSTILE, expected_target_nonce: nonce }, deposit: 0n, gas: 200n,
     rule: `caller == raider(${RAIDER_HOSTILE}).owner_id (buyer); non-payable; raider.atp >= 10; raider.snacc >= book×115%` }),
+  clock: (hours) => ({ kpi: "PREP", who: "main", method: "advance_sandbox_clock", args: { hours }, deposit: 0n, gas: 100n,
+    rule: "owner-only (akun kontrak); 1 <= hours <= 720; aktif hanya di akun .testnet; non-payable" }),
   register: () => ({ kpi: "PREP", who: "main", method: "storage_deposit", args: { account_id: BUYER, registration_only: true }, deposit: STORAGE_REG_YOCTO, gas: 100n,
     rule: "#[payable]; registrasi baru wajib >= 5 milliNEAR (kelebihan di-refund)" }),
   ft: () => ({ kpi: "G-02", who: "main", method: "ft_transfer", args: { receiver_id: BUYER, amount: FT_AMOUNT, memo: "gladi-retry" }, deposit: 1n, gas: 100n,
@@ -152,6 +159,11 @@ async function view(method, args = {}, account = CONTRACT) {
 }
 const viewAccount = (id) => rpc("query", { request_type: "view_account", finality: "final", account_id: id });
 const headMs = async () => Number((await rpc("block", { finality: "final" })).header.timestamp) / 1e6;
+/** Waktu kontrak (detik) = waktu blok final + offset jam sandbox (`get_sandbox_clock` -> [enabled, offset, now_sec]); fallback waktu blok. */
+async function contractNowSec() {
+  try { const c = await view("get_sandbox_clock"); if (Array.isArray(c) && Number.isFinite(Number(c[2]))) return { now: Number(c[2]), offset: Number(c[1]), enabled: !!c[0] }; } catch { /* kontrak lama tanpa jam sandbox */ }
+  return { now: Math.floor((await headMs()) / 1000), offset: 0, enabled: false };
+}
 
 // ---------- model waktu BMR ----------
 const bmrEff = (s) => Math.floor((s.bmr_per_hour * Math.max(0, BPS - s.organel.lisosom * LYSOSOME_BPS_PER_LEVEL)) / BPS);
@@ -193,15 +205,14 @@ async function spendable(id) {
 }
 
 async function snapshot() {
-  const nowMs = await headMs();
-  const now = Math.floor(nowMs / 1000);
+  const { now, offset, enabled } = await contractNowSec();
   const st = {};
   for (const id of [RAIDER_HOSTILE, TARGET_HOSTILE, ADOPTER, TARGET_ADOPT]) st[id] = await strainState(id);
   const colony = await view("get_colony", { owner_id: CONTRACT });
   const ftMain = BigInt(await view("ft_balance_of", { account_id: CONTRACT }));
   const buyerReg = await view("storage_balance_of", { account_id: BUYER });
   const [spMain, spBuyer] = await Promise.all([spendable(CONTRACT), spendable(BUYER)]);
-  return { now, st, colony, ftMain, buyerReg, spMain, spBuyer, keys: { main: existsSync(KEY_MAIN), buyer: existsSync(KEY_BUYER) } };
+  return { now, offset, sandbox: enabled, st, colony, ftMain, buyerReg, spMain, spBuyer, keys: { main: existsSync(KEY_MAIN), buyer: existsSync(KEY_BUYER) } };
 }
 
 /** Hitung status tiap KPI dari snapshot. earliest = detik epoch (null = tak terjadwal), blockers = alasan non-waktu. */
@@ -267,7 +278,7 @@ function plan(S) {
 function printPreflight(S, P) {
   const { now, st } = S;
   console.log(`# gladi-retry PREFLIGHT (view-only, tanpa transaksi) — kontrak ${CONTRACT}`);
-  console.log(`Sekarang (final block): ${iso(now)}\n`);
+  console.log(`Sekarang (waktu kontrak = blok final + offset jam sandbox ${S.offset ?? 0}s${S.sandbox ? ", sandbox AKTIF" : ""}): ${iso(now)}\n`);
   console.log("## State strain (view get_strain + SVG saldo)");
   for (const id of [RAIDER_HOSTILE, TARGET_HOSTILE, ADOPTER, TARGET_ADOPT]) {
     const s = st[id], w = windows(s);
@@ -426,14 +437,24 @@ async function execute() {
       const S = await snapshot(), P = plan(S);
       const p = P[kpi];
       for (const w of p.warnings ?? []) console.log(`ℹ ${kpi} peringatan: ${w}`);
+      // --advance: maju-kan jam sandbox kontrak (owner-only, <=720 jam/panggilan) sampai jendela KPI terbuka.
+      // Hanya untuk KPI yang menunggu penuaan (bukan G-02); jam menggeser SEMUA strain, jadi hanya dimajukan seperlunya.
+      const needHours = has("advance") && S.sandbox && kpi !== "G-02" && p.earliest !== null && S.now < p.earliest
+        ? Math.min(720, Math.ceil((p.earliest - S.now) / 3600)) : 0;
       if (DRY) {
         console.log(`ℹ ${kpi} jendela: ${winNote(p, S.now)} · blokir saat ini: ${p.blockers.length ? p.blockers.join("; ") : "tidak ada"}`);
+        if (needHours > 0) await send(A.clock(needHours));
         return { S, P };
       }
       if (p.blockers.some((b) => !/belum terdaftar storage/.test(b))) { console.log(`⏭ ${kpi} DIBLOKIR: ${p.blockers.join("; ")}`); return null; }
       if (p.earliest === null) { console.log(`⏭ ${kpi} tak terjadwal`); return null; }
       if (p.closes && S.now >= p.closes) { console.log(`⏭ ${kpi} jendela sudah tutup (${iso(p.closes)})`); return null; }
       if (S.now >= p.earliest) return { S, P };
+      if (needHours > 0) {
+        console.log(`⏩ ${kpi}: jam sandbox +${needHours} jam (jendela paling awal ${iso(p.earliest)}, kontrak kini ${iso(S.now)})`);
+        if (!(await send(A.clock(needHours)))) return null;
+        continue;
+      }
       if (!has("wait")) { console.log(`⏭ ${kpi} belum waktunya (paling awal ${iso(p.earliest)}; pakai --wait untuk menunggu)`); return null; }
       const wait = Math.min(300, p.earliest - S.now + 5);
       console.log(`⏳ ${kpi} menunggu ${iso(p.earliest)} (cek lagi ${wait}s)`);
