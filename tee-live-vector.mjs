@@ -30,7 +30,7 @@ if (!apiKey) {
 const MODEL = "z-ai/glm-5.3-flash";
 const REQ_BODY = JSON.stringify({
   model: MODEL, temperature: 0,
-  messages: [{ role: "user", content: "Kembalikan PERSIS teks berikut sebagai satu-satunya isi balasan, tanpa markdown, tanpa penjelasan, tanpa teks lain: {\"strain_id\":5,\"efficiency_shift_bps\":450,\"vitality_bonus\":200,\"phenotype_trait\":\"mitokondria-empyrean\"}" }],
+  messages: [{ role: "user", content: "Kembalikan PERSIS teks berikut sebagai satu-satunya isi balasan, tanpa markdown, tanpa penjelasan, tanpa teks lain: {\"strain_id\":4,\"efficiency_shift_bps\":450,\"vitality_bonus\":200,\"phenotype_trait\":\"mitokondria-empyrean\"}" }],
 });
 const reqSha = createHash("sha256").update(REQ_BODY).digest("hex");
 

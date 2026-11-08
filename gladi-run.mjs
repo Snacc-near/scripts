@@ -43,6 +43,7 @@ const step = async (kpi, label, fn) => {
   }
 };
 const inv = async (token) => BigInt(await view("get_inventory", { strain_id: 1, token_id: token }));
+const invOf = async (s, token) => BigInt(await view("get_inventory", { strain_id: s, token_id: token }));
 // BUKTI view read-only: dicatat ke manifest (txHash null + nilai) — tak mengganggu KPI runner.
 const bukti = async (label, method, args, kpi = "BUKTI") => {
   try {
@@ -64,10 +65,13 @@ async function run() {
   manifest.supply_before = await view("ft_total_supply");
   manifest.temp_before = await view("get_crucible_temp").catch(() => 0);
 
-  // 1) Lahir ×3 (tiap peran satu strain)
-  await step("G-01", "incubate Extractor (strain 1)", () => call("incubate_strain", { role: "Extractor", initial_snacc_stake: "1000000000000000000000000", initial_spores: 10 }, 10n ** 24n));
-  await step("PREP", "incubate Fermenter (strain 2)", () => call("incubate_strain", { role: "Fermenter", initial_snacc_stake: "500000000000000000000000", initial_spores: 10 }, 5n * 10n ** 23n));
-  await step("PREP", "incubate Synthesizer (strain 3)", () => call("incubate_strain", { role: "Synthesizer", initial_snacc_stake: "500000000000000000000000", initial_spores: 10 }, 5n * 10n ** 23n));
+  // 1) Lahir ×5 (id 1..5 deterministik pasca-migrate; strain 5 = target TEE sesuai vektor).
+  //    Stake disesuaikan saldo akun (deploy/sub-account menarik NEAR nyata).
+  await step("G-01", "incubate Extractor (strain 1)", () => call("incubate_strain", { role: "Extractor", initial_snacc_stake: "500000000000000000000000", initial_spores: 10 }, 5n * 10n ** 23n));
+  await step("PREP", "incubate Fermenter (strain 2)", () => call("incubate_strain", { role: "Fermenter", initial_snacc_stake: "250000000000000000000000", initial_spores: 10 }, 25n * 10n ** 22n));
+  await step("PREP", "incubate Synthesizer (strain 3)", () => call("incubate_strain", { role: "Synthesizer", initial_snacc_stake: "250000000000000000000000", initial_spores: 10 }, 25n * 10n ** 22n));
+  await step("PREP", "incubate Extractor-2 (strain 4)", () => call("incubate_strain", { role: "Extractor", initial_snacc_stake: "250000000000000000000000", initial_spores: 10 }, 25n * 10n ** 22n));
+  await step("PREP", "incubate Synthesizer-2 (strain 5 — target TEE)", () => call("incubate_strain", { role: "Synthesizer", initial_snacc_stake: "250000000000000000000000", initial_spores: 10 }, 25n * 10n ** 22n));
 
   // 2) Makan → ATP (model ATP: EN-115 — atp_minted = feed/10^15 × eff × (10+mito)/10;
   //    feed 5×10^17 → atp_minted ≥ 500 unit, cukup untuk seluruh rantai kerja:
@@ -88,11 +92,16 @@ async function run() {
   await step("PREP", "allocate_atp (1/1/1 — efek organel EN-119, biaya 3 ATP)", () =>
     call("allocate_atp", { strain_id: 1, mitokondria: 1, nukleus: 1, lisosom: 1 }));
 
-  // 3) TEE zero-trust (vektor live tersimpan — tanpa API baru)
+  // 3b) Fusi ×2 SEBELUM rantai produksi — `transmute` butuh role F (dari strain 2),
+  //     `synthesize` butuh S (dari strain 3). Setelah ini strain 1 = E|F|S.
+  await step("G-06", "splice (1 absorbs 2 — role E|F)", () => call("splice_strains", { dominant_id: 1, absorbed_id: 2 }));
+  await step("G-06", "splice (1 absorbs 3 — role E|F|S)", () => call("splice_strains", { dominant_id: 1, absorbed_id: 3 }));
+
+  // 3) TEE zero-trust — target **strain 5** (vektor tersimpan memuat `strain_id:5`; tanpa API baru)
   await step("G-05", "register_attested_signer", () => call("register_attested_signer", { pubkey_hex: v.tee_pubkey_hex, attested_at_sec: Math.floor(Date.now() / 1000) }));
-  await step("G-05", "commit_genome_experiment (strain 1)", () => call("commit_genome_experiment", { strain_id: 1, req_sha256_hex: v.req_sha256_hex }));
-  await step("G-05", "apply_tee_mutation_zero_trust", () => call("apply_tee_mutation_zero_trust", {
-    strain_id: 1, req_sha256_hex: v.req_sha256_hex, raw_response_body: v.raw_response_body,
+  await step("G-05", "commit_genome_experiment (strain 5)", () => call("commit_genome_experiment", { strain_id: 5, req_sha256_hex: v.req_sha256_hex }));
+  await step("G-05", "apply_tee_mutation_zero_trust (strain 5)", () => call("apply_tee_mutation_zero_trust", {
+    strain_id: 5, req_sha256_hex: v.req_sha256_hex, raw_response_body: v.raw_response_body,
     signature_hex: v.signature_hex, tee_pubkey_hex: v.tee_pubkey_hex,
   }));
 
@@ -116,16 +125,23 @@ async function run() {
   await step("G-13", "npc_buy_spores (npc-extractor, 50)", () => call("npc_buy_spores", { strain_id: 1, npc_id: "npc-extractor", buy_amount: 50 }));
   await step("G-17", "ft_burn (10^15 $SNACC)", () => call("ft_burn", { strain_id: 1, amount: "1000000000000000" }));
 
-  // 6) Fusi ×2 (role E|F|S) → divide (EN-124 terbuka setelah merger)
-  await step("G-06", "splice (1 absorbs 2)", () => call("splice_strains", { dominant_id: 1, absorbed_id: 2 }));
-  await step("G-06", "splice (1 absorbs 3)", () => call("splice_strains", { dominant_id: 1, absorbed_id: 3 }));
-  await step("G-09", "divide_strain (anak = strain 4)", () => call("divide_strain", { strain_id: 1 }));
-  manifest.strain_ids = [1, 2, 3, 4]; manifest.token_ids = ["1", "2", "3", "4"];
+  // 6) Divide (EN-124 terbuka setelah 2 merger)
+  await step("G-09", "divide_strain (anak = strain 6)", () => call("divide_strain", { strain_id: 1 }));
+  manifest.strain_ids = [1, 2, 3, 4, 5, 6]; manifest.token_ids = ["1", "2", "3", "4", "5", "6"];
 
-  // 7) Dividen DK-033/044: kontribusi aether → tutup epoch → klaim
-  await step("G-11", "synthesize_and_redeem_aether (kontribusi dividen)", () => call("synthesize_and_redeem_aether", { strain_id: 1, amount: "1000000000000000" }));
+  // 7) Dividen DK-033/044 via strain 5 (bertrait TEE): splice(5 absorbs 1) → E|F|S + inventori
+  //    menyatu → rantai elixir-aether → kontribusi → klaim.
+  await step("G-06", "splice (5 absorbs 1 — role E|F|S + inventori menyatu)", () => call("splice_strains", { dominant_id: 5, absorbed_id: 1 }));
+  let ig5 = await invOf(5, IGNIS);
+  const burn5 = ig5 % 2n === 0n ? ig5 : ig5 - 1n;
+  if (burn5 >= 2n) await step("G-04", "transmute habiskan ignis (strain 5)", () => call("transmute_spores_to_enzyme", { strain_id: 5, spores_to_burn: Number(burn5), snacc_catalyst_fee: String(FE) }, DEP_DIET));
+  await step("G-04", "extract cryo (strain 5)", () => call("extract_spores", { strain_id: 5, spore_type: "mt:spore-cryo", snacc_catalyst_fee: String(FE) }, FE));
+  await step("G-04", "extract cryo ke-2 (strain 5)", () => call("extract_spores", { strain_id: 5, spore_type: "mt:spore-cryo", snacc_catalyst_fee: String(FE) }, FE));
+  await step("G-04", "transmute cryo→synthase (strain 5)", () => call("transmute_spores_to_enzyme", { strain_id: 5, spores_to_burn: 2, snacc_catalyst_fee: String(FE) }, DEP_DIET));
+  await step("G-04", "synthesize ELIXIR-AETHER (strain 5, bertrait)", () => call("synthesize_elixir", { strain_id: 5, elixir_type: "mt:elixir-aether", enzymes_to_burn: 3, snacc_catalyst_fee: String(FE) }, FE));
+  await step("G-11", "synthesize_and_redeem_aether (kontribusi dividen)", () => call("synthesize_and_redeem_aether", { strain_id: 5, amount: "1" }));
   await step("G-19", "advance_epoch (tutup epoch 0)", () => call("advance_epoch", {}));
-  await step("G-11", "claim_industrial_dividend (epoch 0)", () => call("claim_industrial_dividend", { strain_id: 1, epoch: 0 }));
+  await step("G-11", "claim_industrial_dividend (strain 5, epoch 0)", () => call("claim_industrial_dividend", { strain_id: 5, epoch: 0 }));
   await step("G-19", "advance_epoch ke-2", () => call("advance_epoch", {}));
 
   // 8) Vault sub-account (deposit ≥ 20 mN = 2×10^22)

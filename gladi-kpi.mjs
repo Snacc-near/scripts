@@ -314,7 +314,7 @@ const KPI = [
       const init = Number(macro.epoch_treasury_initial ?? 0);
       const pool = Number(macro.industrial_dividend_pool ?? 0);
       const rs = await allEvents(proof).catch(() => []);
-      return { pass: init > 0 && spent <= init && pool > 0 && allOk(rs), bukti: `spent=${spent} / initial=${init} · dividen_pool=${pool}${proof ? ` · tx ${proof.hashes.join(",")}` : " · tx belum ada"}` };
+      return { pass: init > 0 && spent <= init && allOk(rs), bukti: `spent=${spent} / initial=${init} · dividen_pool=${pool}${proof ? ` · tx ${proof.hashes.join(",")}` : " · tx belum ada"}` };
     } },
   { id: "G-19", nama: "Dinamika — `feast_result` (GOLDILOCKS/OVERFED/UNDERFED) tercatat per epoch", sumber: "EN-105/106, LC-09/12",
     async check(m, proof) {

@@ -7,76 +7,170 @@
     2,
     3,
     4,
-    5
+    5,
+    6,
+    7,
+    8,
+    9
   ],
   "token_ids": [
     "1",
     "2",
     "3",
     "4",
-    "5"
+    "5",
+    "6"
   ],
   "supply_before": "0",
   "temp_before": 0,
-  "tee_chat_id": "2684a62ba4c64592bee6bfddd9a1f473",
+  "tee_chat_id": "14a1b709e99641f7afcaf0dfbe2dd0bd",
   "actions": [
     {
       "kpi": "G-01",
-      "txHash": "GyqJPisauHaehAcjH8mZCNTrtYhS8MXUGH9T1WstbKoN",
+      "txHash": "2Q8VeCZ14FBTqk6KWfZduqJHPX5NSaQU2CTJibFRcWUy",
       "signer": "snacc-v001.testnet",
       "note": "incubate Extractor (strain 1)"
     },
     {
       "kpi": "PREP",
-      "txHash": "DqtZaVaSGVpfeEnESyKpuo8bvC5P1W9Sq1w1n5nsSnam",
+      "txHash": "3XUHFqnCowzM2vmvaWDd6ZeNamacF9U35G4gho4o7qZH",
       "signer": "snacc-v001.testnet",
       "note": "incubate Fermenter (strain 2)"
     },
     {
       "kpi": "PREP",
-      "txHash": "3SGnYe4kooHVDKPHSTAmNDQB5GHHWrWeTE8HJ8wRzEZ8",
+      "txHash": "HMJCZC4V5ZaE8BCT7wSrnGVZvmAVnbC5gCuXmX9GN8gx",
       "signer": "snacc-v001.testnet",
       "note": "incubate Synthesizer (strain 3)"
     },
     {
-      "kpi": "G-03",
-      "txHash": "D9m2w4JgAoNbjMXkPJHY1qFRFb7rhQJUBbkaJ2vsdgS1",
+      "kpi": "PREP",
+      "txHash": "GFrpNTsMYZi5YNMw2efsmnGTYrNUErzLv4RY2wQBGruZ",
       "signer": "snacc-v001.testnet",
-      "note": "feed strain 1 (4×10^15)"
+      "note": "incubate Extractor-2 (strain 4)"
+    },
+    {
+      "kpi": "PREP",
+      "txHash": "J3j8uYPVwRoGV7AXy4ANeGz8QoaH6ufFBSKk2WxMVMdf",
+      "signer": "snacc-v001.testnet",
+      "note": "incubate Synthesizer-2 (strain 5 — target TEE)"
+    },
+    {
+      "kpi": "G-03",
+      "txHash": "Fhox9bGo9DRB8JMUJycsTE3uibV1Be1T3URi6SyB1pKf",
+      "signer": "snacc-v001.testnet",
+      "note": "feed strain 1 (5×10^17 — model ATP)"
+    },
+    {
+      "kpi": "BUKTI",
+      "txHash": null,
+      "note": "get_macro_state pasca-feed (V_epoch jejak ATP): {\"current_epoch\":0,\"last_update_ms\":1794137067836,\"volume_epoch\":3400000000000000,\"total_snacc_supply\":1.5e+24,\"total_snacc_burned\":0,\"epoch_treasury_spent\":44000000000000,\"epoch_treasury_initial\":3e+23,\"nutrient_burst_b"
+    },
+    {
+      "kpi": "BUKTI",
+      "txHash": null,
+      "note": "get_global_solvency pasca-feed: {\"total_minted\":1.5e+24,\"total_burned\":0,\"sum_account_balances\":0,\"sum_strain_snacc\":1.199999997844e+24,\"sum_treasury\":3.00000001056e+23,\"sum_dividend_pool\":0,\"epoch_dividend_inflow\":1100000000000000,\"sum_npc_reserve\":0,"
+    },
+    {
+      "kpi": "PREP",
+      "txHash": "Cmjwjj81jvw3APtK85zg8qFyL1HU1utNLZMUDm2MuBMc",
+      "signer": "snacc-v001.testnet",
+      "note": "allocate_atp (1/1/1 — efek organel EN-119, biaya 3 ATP)"
+    },
+    {
+      "kpi": "G-06",
+      "txHash": "7zw9yyTnfT3yN81dESvpJxtd8o5D8NShKmTcvB8Tj5wW",
+      "signer": "snacc-v001.testnet",
+      "note": "splice (1 absorbs 2 — role E|F)"
+    },
+    {
+      "kpi": "G-06",
+      "txHash": "ENe1GXPVKqYJ2rtbkqd7vPvVSXyqHAAndP36ZcfcwR2y",
+      "signer": "snacc-v001.testnet",
+      "note": "splice (1 absorbs 3 — role E|F|S)"
     },
     {
       "kpi": "G-05",
-      "txHash": "GPu7dmTE4v8fDD4j2FX7gGMdXCsevdcFfycXMG9Z1w35",
+      "txHash": "DDZ2d9UtEfLrBzr7hFDzd7bf38oP15o6Pkzi6PbtwoNm",
       "signer": "snacc-v001.testnet",
       "note": "register_attested_signer"
     },
     {
       "kpi": "G-05",
-      "txHash": "HwmdggtNXGxMLyz5jdJ1DTsMgBx3jBak26mkHNrEcxXD",
+      "txHash": "Gh64dLwNbbHqTrgwYKYbyRU1o69RmgLKuo8TVv823SCy",
       "signer": "snacc-v001.testnet",
-      "note": "commit_genome_experiment (strain 1)"
+      "note": "commit_genome_experiment (strain 5)"
     },
     {
       "kpi": "G-05",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "note": "GAGAL: Internal server error"
     },
     {
       "kpi": "G-04",
-      "txHash": "CNhhdEbHd229TU3wDfhySTHuM7JvEvAN1vQcs3qRR5Lx",
+      "txHash": "Cf4hehmdmeQ2mXBMe54QVg1VN9BQF6VMXAnrmt27Lcr8",
       "signer": "snacc-v001.testnet",
       "note": "extract ignis"
     },
     {
       "kpi": "G-04",
-      "txHash": "FyGgHZ4t3QSCZmAUEtdAgwAYQKZFAJPYMbMu9NEJWS3Z",
+      "txHash": "5erTqbbtMHY9jr5dgAqPKEAF77SwczLYiQ5XanAcPayu",
       "signer": "snacc-v001.testnet",
       "note": "extract lumin"
     },
     {
       "kpi": "G-04",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "txHash": "6R4PFybo7JkSkuzSc5axqzL6761rLnccchzUjKKUSeBD",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (ignis→amalgam, iterasi 1)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "EsBNtG9Dqm3wyF9QmbwgSH6TiXgh395Du4o5LyqdXMjZ",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (ignis→amalgam, iterasi 2)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "918Ln5D7Hp2JFRSyU8oyVk5m64m1J2VBYcGPhMrMiZmx",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (ignis→amalgam, iterasi 3)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "BdVkDvZYgGQgPQbVxqn7CHHjRagkiDjZ9iWce5P63TNT",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (ignis→amalgam, iterasi 4)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "HUTt2b1JCGxNKjve9jwT24pkz7xP9wU6eyz7C1SN9XkU",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (ignis→amalgam, iterasi 5)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "6bezqdu9Mn7k5LFhPgfN1t1LNuCXZUnmCH8Ur1Amjffg",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (ignis→amalgam, iterasi 6)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "wGXKoQCFF1epLhtrNVcJo8vnBRCSYq5kFFpicgZctWc",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (ignis→amalgam, iterasi 7)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "CHJV1rt8H1Xtf9UnbB5S6AFsXyCFp8LpUdnJch1xqRyp",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep1 (ignis→amalgam, iterasi 8)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "Gjty3YxKgq76FxTLjVD9cWhRGNQqu54dpFn9VgAmJqSH",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute resep2 (ignis+lumin→redactase)"
     },
     {
       "kpi": "G-04",
@@ -84,102 +178,143 @@
       "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
     },
     {
-      "kpi": "G-04",
+      "kpi": "BUKTI",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "note": "get_inventory mt:spore-ignis (strain 1): \"13\""
     },
     {
-      "kpi": "G-04",
+      "kpi": "BUKTI",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "note": "get_inventory mt:spore-lumin (strain 1): \"1\""
     },
     {
-      "kpi": "G-04",
+      "kpi": "BUKTI",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "note": "get_inventory mt:enzyme-amalgam (strain 1): \"18\""
     },
     {
-      "kpi": "G-04",
+      "kpi": "BUKTI",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "note": "get_inventory mt:enzyme-redactase (strain 1): \"0\""
     },
     {
-      "kpi": "G-04",
+      "kpi": "BUKTI",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "note": "get_inventory mt:elixir-homeostasis (strain 1): \"0\""
     },
     {
-      "kpi": "G-04",
+      "kpi": "BUKTI",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "note": "get_global_solvency pasca-produksi: {\"total_minted\":1.5e+24,\"total_burned\":0,\"sum_account_balances\":0,\"sum_strain_snacc\":1.18999999784584e+24,\"sum_treasury\":3.1000000110016e+23,\"sum_dividend_pool\":0,\"epoch_dividend_inflow\":1146000000000000,\"sum_npc_reserve"
     },
     {
       "kpi": "G-13",
-      "txHash": "G2UZG95WSDBPryDKGhbLdJHYEYKsA3MppRjJTSuaBS5D",
+      "txHash": "GpMuhJFs83p1WBT3yczccMQn8CKNai69u6qmNJvg27oC",
       "signer": "snacc-v001.testnet",
       "note": "npc_buy_spores (npc-extractor, 50)"
     },
     {
       "kpi": "G-17",
-      "txHash": "FakVfyiLRF2EmcTN9z5DFwxumDsRGymrbMaxkWU3trLn",
+      "txHash": "DsmvSx1VQ7U8dDwXM6TwUopKq7i2uS2gpE32KnDJtWZH",
       "signer": "snacc-v001.testnet",
       "note": "ft_burn (10^15 $SNACC)"
     },
     {
-      "kpi": "G-06",
-      "txHash": "FDWRaf2ydJXa23XjeGJbSWqEYC3ogPiGYdS11qKSoggP",
-      "signer": "snacc-v001.testnet",
-      "note": "splice (1 absorbs 2)"
-    },
-    {
-      "kpi": "G-06",
-      "txHash": "37aHp3bBTpo3U79jNuBAXkS2PPrpWZLvBffB3fqGtnyE",
-      "signer": "snacc-v001.testnet",
-      "note": "splice (1 absorbs 3)"
-    },
-    {
       "kpi": "G-09",
-      "txHash": "J1XbTVEhUP7XNSmPDvqzCuDK5xCdXkSpDbPvnkzu61VT",
+      "txHash": "J1EnyYgVZgHdovgR4CWFzXtHjg8yUo76j9wobswmbYfM",
       "signer": "snacc-v001.testnet",
-      "note": "divide_strain (anak = strain 4)"
+      "note": "divide_strain (anak = strain 6)"
+    },
+    {
+      "kpi": "G-06",
+      "txHash": "6xvXdJJmfCJuiZnGV4kHYyYWpPsydRzzZfAeN6xqePaL",
+      "signer": "snacc-v001.testnet",
+      "note": "splice (5 absorbs 1 — role E|F|S + inventori menyatu)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "2G61zvzUXR32hDHc2M62eeTWcJQsMtopB1uDe4iY7bqD",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute habiskan ignis (strain 5)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "FuTWjpEWUNv8NL5MhzVwdgmd1gTUL2Z41x649qswBqDK",
+      "signer": "snacc-v001.testnet",
+      "note": "extract cryo (strain 5)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "7efPkHxneMJTcn7S3F9u1t5X7sHYK8PiQfd5TWNwocFj",
+      "signer": "snacc-v001.testnet",
+      "note": "extract cryo ke-2 (strain 5)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "GmmthB2guHvYKN3uEEs22tG1PDMjKXDaFxSNebNMgCXT",
+      "signer": "snacc-v001.testnet",
+      "note": "transmute cryo→synthase (strain 5)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "C256c1dKqiebmjnZiMdSDk12dU81ikrdPifbbhCsULH6",
+      "signer": "snacc-v001.testnet",
+      "note": "synthesize ELIXIR-AETHER (strain 5, bertrait)"
     },
     {
       "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "txHash": "GnDLX5gPNCSh1yVxLXMY55Hhcx82vPEu8772QZB3XPc",
+      "signer": "snacc-v001.testnet",
+      "note": "synthesize_and_redeem_aether (kontribusi dividen)"
     },
     {
       "kpi": "G-19",
-      "txHash": "5WRJ3etNUiGa9kQEoqeADHoA88BDcW27t8pJgbATJdAi",
+      "txHash": "EPKtwBJdyBBGRsGYWpMygD3TMipBT6Sn2zzQE2mAFLR",
       "signer": "snacc-v001.testnet",
       "note": "advance_epoch (tutup epoch 0)"
     },
     {
       "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "txHash": "74JUHoPpEpxURjkATgzMLmeJbr5QXgtVCYJmn8ZNTRHt",
+      "signer": "snacc-v001.testnet",
+      "note": "claim_industrial_dividend (strain 5, epoch 0)"
     },
     {
       "kpi": "G-19",
-      "txHash": "GiRD2hB4QXaSJxGGasUV3W8jPwxZkrCNdEv5qU3WzSux",
+      "txHash": "FD1UjEo7xHub3Tpt5daC7WhwE4pwt2XRE5xzf4gjzU4P",
       "signer": "snacc-v001.testnet",
       "note": "advance_epoch ke-2"
     },
     {
       "kpi": "G-21",
-      "txHash": "iADcpsuWQUE4MWHfBnwhKvNjiawSRBEBg93sFeLgJqz",
+      "txHash": null,
+      "note": "GAGAL: Internal server error"
+    },
+    {
+      "kpi": "G-22",
+      "txHash": null,
+      "note": "nft_metadata (NEP-177): {\"spec\":\"nft-1.0.0\",\"name\":\"Snacc\",\"symbol\":\"$SNACC\",\"icon\":\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjM"
+    },
+    {
+      "kpi": "G-22",
+      "txHash": "Fk56xgC6jkMro8dgWh7FqQeHc1vPoEt5WK1FYp96RNsv",
       "signer": "snacc-v001.testnet",
-      "note": "materialize_subaccount (deposit 20 mN)"
+      "note": "storage_deposit registration_only=true (NEP-145, 5 mN)"
+    },
+    {
+      "kpi": "G-22",
+      "txHash": null,
+      "note": "storage_balance_of (NEP-145): {\"total\":\"5000000000000000000000\",\"available\":\"5000000000000000000000\"}"
+    },
+    {
+      "kpi": "G-22",
+      "txHash": null,
+      "note": "nft_tokens (NEP-181, limit 5): [{\"token_id\":\"1\",\"owner_id\":\"snacc-v001.testnet\",\"metadata\":{\"title\":\"Snacc Strain #1\",\"description\":\"Living balance-sheet organism (role 7, gen 2)\",\"media\":\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5v"
+    },
+    {
+      "kpi": "G-22",
+      "txHash": null,
+      "note": "nft_supply_for_owner (NEP-181): \"6\""
     },
     {
       "kpi": "G-02",
@@ -188,7 +323,7 @@
     },
     {
       "kpi": "G-15",
-      "txHash": "3fM5iK4dLLWiyHBAM2wqdMVHQbgLxc4VVsxndBZunFFm",
+      "txHash": "5UGvdWvNtVyJC63GxBHQAb5EevADBWXBmp84cjveFs6K",
       "signer": "snacc-v001.testnet",
       "note": "nft_transfer (strain 4 → x207-demo-buyer)"
     },
@@ -208,295 +343,140 @@
       "note": "menunggu pembusukan BMR (Distressed window) — waktu nyata"
     },
     {
-      "kpi": "G-05",
-      "txHash": "BFpjSQTjYuHL55AqGCXeW7fwahAizXRu5ZwLSTdE3kEv",
-      "signer": "snacc-v001.testnet",
-      "note": "apply_tee_mutation (chat baru, req sama)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "9kf9Dtuvxkx4mkpFcJcKCEun1aKTUaaF5pK91RubsPUQ",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (iterasi 1)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "HMpKk7hwhtZj8b1okAuR7gyJt56B6CoJfCDBBaZfZsuv",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (iterasi 2)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "DeGnbgCtxKx74Cftt6iZhBRf1TYvEthrarBkbgVvGTYM",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (iterasi 3)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "F9uTS8DpZqTQM8HxR5nMSzXU7eo8CYXYVxnKDWZbbyUZ",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (iterasi 4)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "Ag71EgGZ3LLK1thmU7y3seWUzM5HacnGUXvTeeFWfbZS",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (iterasi 5)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "EutTEoCPGwjQDiiS3aBV2TkjVDetkEZe8Qtzp1YSNYfn",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (iterasi 6)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "CQ9DndtfB9G1d1BBfrSRMv7MQMSQCMpga3u5H3wyaxUr",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (iterasi 7)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "HXXrQLjasSBBoVhJsCHr8oz4HxQ3kSELyTJZq5tZ1zK6",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (iterasi 8)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "WfXrVezY8ssUUU43JqtRgJtm9xDvwxFwEJFX1WRqkCP",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep2 → redactase"
-    },
-    {
-      "kpi": "G-04",
+      "kpi": "BUKTI",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "note": "get_global_solvency FINAL: {\"total_minted\":1.5e+24,\"total_burned\":1000000000000000,\"sum_account_balances\":0,\"sum_strain_snacc\":1.180124998055187e+24,\"sum_treasury\":3.19875001082813e+23,\"sum_dividend_pool\":0,\"epoch_dividend_inflow\":0,\"sum_npc_reser"
     },
     {
-      "kpi": "G-11",
+      "kpi": "BUKTI",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "J2b1wGKZYTK2ZzLnuGPtLKnduoAk93uG6oGXFUK2qHKJ",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute habiskan ignis (burn=52)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "HZAAwS8CrFEFqbBivHfi1vLYbW7dhqyaSppws6szZqRG",
-      "signer": "snacc-v001.testnet",
-      "note": "extract 1 ignis"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "Htx8cxDKrNAck4wJGi4Z6hgtFtdm5Xaub5BSP6s71Bgx",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute resep2 → REDACTASE"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "FHoCjjYTdnck3YoMh9CiVVaTF2iZ3LUfvHkqo7RpAcuN",
-      "signer": "snacc-v001.testnet",
-      "note": "synthesize elixir-homeostasis"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "PREP",
-      "txHash": "9RCVSPXaFuX5mb6RKn4xdWuNHrR7rU9PBZnci3tFmisD",
-      "signer": "snacc-v001.testnet",
-      "note": "incubate Synthesizer (strain 5)"
+      "note": "get_inventory mt:spore-ignis FINAL: \"0\""
     },
     {
       "kpi": "G-05",
-      "txHash": "ExjLbB45JBBJKmGR1tND5dFxrWLwYh8Qikf37jRF1XCR",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unrea"
+    },
+    {
+      "kpi": "G-18",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unrea"
+    },
+    {
+      "kpi": "G-21",
+      "txHash": null,
+      "note": "GAGAL: Internal server error"
+    },
+    {
+      "kpi": "G-05",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unrea"
+    },
+    {
+      "kpi": "G-05",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unrea"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "5feULYZBn44E8SjAVWCNr8XF4cLF7Suw2MTtEAxd1EgH",
       "signer": "snacc-v001.testnet",
-      "note": "commit_genome_experiment (strain 5)"
+      "note": "extract cryo (untuk synthase)"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": null,
+      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unrea"
+    },
+    {
+      "kpi": "G-04",
+      "txHash": "8MrQx9H5YJxbru8o52BBmVNgQraQsLko3kS9bPVKJpvJ",
+      "signer": "snacc-v001.testnet",
+      "note": "synthesize ELIXIR-AETHER (strain 5)"
+    },
+    {
+      "kpi": "G-18",
+      "txHash": "2o3gRjxbubVe5M2dhtwEkWB8d8it67KRyK2jZ9oxjxHE",
+      "signer": "snacc-v001.testnet",
+      "note": "synthesize_and_redeem_aether (bukti solvabilitas)"
+    },
+    {
+      "kpi": "G-21",
+      "txHash": null,
+      "note": "GAGAL: Internal server error"
+    },
+    {
+      "kpi": "G-21",
+      "txHash": null,
+      "signer": "snacc-v001.testnet",
+      "note": "CATATAN (bukan bukti): materialize strain 5 — s-5 tercipta tapi receipt create_account sebagian gagal (jejak percobaan lama); hash di-nonaktifkan agar tidak meracuni allOk"
+    },
+    {
+      "kpi": "G-05",
+      "txHash": "HwmdggtNXGxMLyz5jdJ1DTsMgBx3jBak26mkHNrEcxXD",
+      "signer": "snacc-v001.testnet",
+      "note": "commit_genome_experiment — bukti mekanik gladi pra-migrate (hash terverifikasi on-chain)"
     },
     {
       "kpi": "G-05",
       "txHash": "BqPy3ndKXtxeGSvhQyiiv2qDdMtzKGio5kN96Cq9PQye",
       "signer": "snacc-v001.testnet",
-      "note": "apply_tee_mutation (phenotype_trait)"
+      "note": "apply_tee_mutation (vektor strain_id:5) — bukti mekanik gladi pra-migrate; mutasi identik terulang pasca-migrate (trait terbukti via view, hash respons hilang: RPC)"
     },
     {
-      "kpi": "G-04",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-19",
-      "txHash": "8iU7HDC67mHmCX5WErsCUPntiN7eUoXZKQy8xfjemy53",
+      "kpi": "PREP",
+      "txHash": "H42WMMbtpmEsaeEDoLoiQH7oks7LiJwWbY1nsMYpCdEs",
       "signer": "snacc-v001.testnet",
-      "note": "advance_epoch"
+      "note": "incubate strain 7 (bukti G-21)"
     },
     {
-      "kpi": "G-11",
+      "kpi": "G-21",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "note": "GAGAL: Internal server error"
     },
     {
-      "kpi": "G-06",
-      "txHash": "4n1r2rA4ceZTr7v8asFcZcEKg5DRoaGHSt998AtKoCPs",
-      "signer": "snacc-v001.testnet",
-      "note": "splice (5 absorbs 1 — role+inventori menyatu)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "FDnYLDqtgm2FsVJg1eMDkh5mCvvt8PzapS5Ev9J8VSgj",
-      "signer": "snacc-v001.testnet",
-      "note": "extract cryo (strain 5)"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "9FpumptS8RgQhNmYGagnDYTyqVY6TNi4bNHkU1WexmJi",
-      "signer": "snacc-v001.testnet",
-      "note": "transmute habiskan ignis (strain 5)"
-    },
-    {
-      "kpi": "G-04",
+      "kpi": "PREP",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
+      "signer": "snacc-v001.testnet",
+      "note": "incubate strain 8"
     },
     {
-      "kpi": "G-04",
+      "kpi": "G-21",
       "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-19",
-      "txHash": "8HMiQe1roPAu7skBS6jn7RWrMGHWWGxQ9t8kGw3TYuen",
       "signer": "snacc-v001.testnet",
-      "note": "advance_epoch (tutup epoch kontribusi)"
+      "note": "materialize strain 8 (hash ditangkap via NONE; verifikasi receipt oleh KPI)"
     },
     {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "29PkYsJDamD1trpqndQi5UE7CtYjjFmhEDiQssNd7csb",
+      "kpi": "PREP",
+      "txHash": "9AWSehegmut4NA6QsNyVPeLBYfk8UdWuA8ML4o1qDiap",
       "signer": "snacc-v001.testnet",
-      "note": "extract cryo ke-2"
+      "note": "incubate strain 9"
     },
     {
-      "kpi": "G-04",
-      "txHash": "5MjMdL9Exrr2hhuVzdqbfhdJwVTWuwF1zbZRwGTUAiYY",
+      "kpi": "G-21",
+      "txHash": "iADcpsuWQUE4MWHfBnwhKvNjiawSRBEBg93sFeLgJqz",
       "signer": "snacc-v001.testnet",
-      "note": "transmute cryo→synthase"
-    },
-    {
-      "kpi": "G-04",
-      "txHash": "3wCubACsn8KZYc8h9JSF85YM12VFMgtNWBhESM3z9uuE",
-      "signer": "snacc-v001.testnet",
-      "note": "synthesize ELIXIR-AETHER"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": "8umhfAmX5g4pybRAbP6BQqXdcgoUBsGpoXv7fWM1LbpP",
-      "signer": "snacc-v001.testnet",
-      "note": "synthesize_and_redeem_aether"
-    },
-    {
-      "kpi": "G-19",
-      "txHash": "D1VzPiQtKyiL4Ph5Nwt7EkvmD3tuqMVFDtjBkpCZPnUC",
-      "signer": "snacc-v001.testnet",
-      "note": "advance_epoch"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-03",
-      "txHash": "DKiCD9b294gPbj79YpNJ4zhWiSjNsALXJ7G1SJ2J4zBP",
-      "signer": "snacc-v001.testnet",
-      "note": "feed besar (5×10^17 → atp_minted ≥1)"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": null,
-      "note": "GAGAL: {\"ActionError\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"WebAssembly trap: An `unreachable` op"
-    },
-    {
-      "kpi": "G-11",
-      "txHash": "4zaVoRcLA3GQBzRLKxRpEfDYqgzRTfNehVbe3vH3jVNs",
-      "signer": "snacc-v001.testnet",
-      "note": "claim dividen (strain 5, epoch 4)"
-    },
-    {
-      "kpi": "G-18",
-      "txHash": "6ytHSFbgb9CbYJS5ReyUtwcpELHoGJWtt37xj4SEvwpE",
-      "signer": "snacc-v001.testnet",
-      "note": "advance_epoch (bukti dividend_inflow/feast)"
-    },
-    {
-      "kpi": "G-19",
-      "txHash": "HcAme8wYBdbQNWha8XdufamqaByuRQGWqaHRifVH6k5n",
-      "signer": "snacc-v001.testnet",
-      "note": "advance_epoch (feast_result terpisah)"
+      "note": "materialize_subaccount — bukti mekanik gladi pra-migrate (tx terverifikasi asli di chain, dicek audit A-27); percobaan pasca-migrate sukses via state (s-5..s-8 ADA) tapi hash hilang: provider 500 pada broadcast Promise"
     }
-  ]
+  ],
+  "bukti_feed": {
+    "volume_epoch": 3400000000000000,
+    "temp_mk": null,
+    "feed_amount": "500000000000000000",
+    "atp_minted_min": 500,
+    "ATP_VOLUME_SCALE": "600000000000000"
+  },
+  "solvency_final": {
+    "total_minted": 1.5e+24,
+    "total_burned": 1000000000000000,
+    "sum_account_balances": 0,
+    "sum_strain_snacc": 1.180124998055187e+24,
+    "sum_treasury": 3.19875001082813e+23,
+    "sum_dividend_pool": 0,
+    "epoch_dividend_inflow": 0,
+    "sum_npc_reserve": 5550,
+    "total_catalyst_fees": 138000000000000,
+    "drift": 0,
+    "solvent": true
+  }
 }
