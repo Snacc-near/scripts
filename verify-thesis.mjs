@@ -100,6 +100,27 @@ try {
   record("F-03", false, `verifikasi TEE gagal: ${String(e.message).slice(0, 100)}`);
 }
 
+// ---------- OCB-01: konteks eksternal OpenChainBench (RES-116) — BUKAN falsifier ----------
+// Endpoint publik tanpa kunci terverifikasi via curl 2026-11-08: /api/stat/near-rpc → 200 JSON live.
+// Sengaja DI LUAR `results[]`: tidak mengubah hitungan falsifier dan TIDAK memengaruhi exit code —
+// data pihak ketiga yang turun tidak boleh membalikkan status "tesis terbukti".
+try {
+  const ocbRes = await fetch("https://openchainbench.com/api/stat/near-rpc", {
+    headers: { accept: "application/json" },
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!ocbRes.ok) throw new Error(`HTTP ${ocbRes.status}`);
+  const ocb = await ocbRes.json();
+  const leader = ocb?.rankings?.[0];
+  console.log(
+    `OCB-01 KONTEKS — OpenChainBench near-rpc status=${ocb.status} · leader=${leader?.name ?? "?"} ` +
+      `p50=${leader?.ms?.p50 ?? "?"}ms successRate=${leader?.successRate ?? "?"}% · ` +
+      `sumber=https://openchainbench.com/api/stat/near-rpc · tidak memengaruhi falsifier`,
+  );
+} catch (e) {
+  console.log(`OCB-01 GAGAL (konteks saja, bukan falsifier): ${String(e.message).slice(0, 100)}`);
+}
+
 const gagal = results.filter((r) => !r.pass).length;
 console.log(`\n${results.length - gagal}/${results.length} falsifier TIDAK terbukti (tesis bertahan) · ${((Date.now() - T0) / 1000).toFixed(1)} dtk · tanpa kunci`);
 process.exit(gagal > 0 ? 1 : 0);
