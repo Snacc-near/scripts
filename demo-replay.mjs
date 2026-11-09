@@ -28,7 +28,7 @@ const BEATS = [
   ["🏦 Vault sub-account", ["G-21"], "The NFT has its own account: `s-<id>-<tag>.<contract-account>`."],
   ["🫀 NFT transplant", ["G-15"], "NEP-171 `nft_transfer` — the NFT (living cell + gut + organelles) changes owner."],
   ["📊 Consistency & solvency", ["G-12", "G-18", "G-20"], "`ft_total_supply == total_snacc_supply`; treasury never negative; `V_epoch` alive (ATP-driven temperature — the zone may differ from the previous gladi)."],
-  ["📜 NEP compliance", ["G-22"], "NEP-177 `nft_metadata` (spec nft-1.0.0) · NEP-145 `storage_deposit(registration_only)` + bounds · NEP-181 enumeration `nft_tokens`/`nft_supply_for_owner` — the entry point for wallets & marketplaces. Verified on the deployed wasm; the view code is not yet in the public repo."],
+  ["📜 NEP compliance", ["G-22"], "NEP-177 `nft_metadata` (spec nft-1.0.0) · NEP-145 `storage_deposit(registration_only)` + bounds · NEP-181 enumeration `nft_tokens`/`nft_supply_for_owner` — the entry point for wallets & marketplaces. Verified on the deployed wasm; the view code is in the public repo (contracts PR #21, GLADI-8)."],
 ];
 
 
