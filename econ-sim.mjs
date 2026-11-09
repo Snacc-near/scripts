@@ -76,6 +76,10 @@ function runSimulation({
   label, freeze = false, volumeModel = "fixed", volumeScale = 1, silent = false,
   feverThreshold = FEVER_THRESHOLD, hypothermiaThreshold = HYPOTHERMIA_THRESHOLD,
   atpVolumeScale = 0, // EN-117 ATP variant: volume contribution per ATP (sim: 1 ATP/tx)
+  // ASSUMPTION #7 comparison variant: onboarding PRINTS supply (supply += inflow, counted in
+  // totalExogenous). Used by docs/asumsi-7-fix.md to measure the impact if ASSUMPTION #7 really
+  // minted. Default false = finite, funded from external holders.
+  exogenousInflow = false,
 }) {
   const rng = mulberry32(SEED);
   const A = { ...ASSUMPTIONS, VOLUME_MODEL: volumeModel, ATP_VOLUME_SCALE: atpVolumeScale };
@@ -83,6 +87,15 @@ function runSimulation({
   let totalSupply = A.INITIAL_SUPPLY;
   let treasury = 0;
   let alchemistPool = A.ALCHEMIST_POOL_INIT;
+  // Independent conservation ledger (ASSUMPTION #7 investigation): the external-holder
+  // balance is tracked explicitly (not as a residual) and compared with the residual every
+  // epoch. Initial external = initial supply − initial alchemist wallet. The only outflow is onboarding.
+  let externalLedger = A.INITIAL_SUPPLY - A.ALCHEMIST_POOL_INIT;
+  let totalInflow = 0;
+  let totalExogenous = 0;          // >0 only in the exogenousInflow variant (printed supply)
+  let externalExhaustedEpoch = -1; // epoch when external holders run out (onboarding stops)
+  let consMaxAbsDrift = 0;         // largest |residual − externalLedger| across the sim
+  let consMinResidual = Infinity;  // smallest residual BEFORE the max(0) clamp (negative = printed supply)
   let totalBurned = 0;
   let totalRebate = 0;
   let totalFeesCollected = 0;
@@ -218,6 +231,16 @@ function runSimulation({
     const extPool = totalSupply - treasury - alchemistPool - [...strains.values()].reduce((a, s) => a + s.balance, 0);
     const inflow = Math.min(A.EXTERNAL_INFLOW, Math.max(0, extPool));
     alchemistPool += inflow;
+    if (exogenousInflow) { totalSupply += inflow; totalExogenous += inflow; }
+    else externalLedger -= inflow;
+    if (externalExhaustedEpoch < 0 && externalLedger <= 0 && !exogenousInflow) externalExhaustedEpoch = epoch;
+    totalInflow += inflow;
+    {
+      const residual = totalSupply - treasury - alchemistPool - [...strains.values()].reduce((a, s) => a + s.balance, 0);
+      if (residual < consMinResidual) consMinResidual = residual;
+      const d = Math.abs(residual - externalLedger);
+      if (d > consMaxAbsDrift) consMaxAbsDrift = d;
+    }
 
     // --- Phase 4: CrucibleTemp thermostat (F4 / ADR-04 + ADR-27) ---
     const vDecayed = Math.max(0, volumeEpoch - EPOCH_SEC_ASSUMED * VOLUME_DECAY_PER_SEC);
@@ -309,6 +332,18 @@ function runSimulation({
     takeoverPremiumPaid: 0,                   // this sim does not model Chapter 11 (see the ECON-104..106 notes)
     finalBalancesSorted: finalBalances,
     legs: legsTotals,
+    // ASSUMPTION #7 conservation ledger (docs/asumsi-7-fix.md §5)
+    alchemistPoolFinal: alchemistPool,
+    strainsBalanceFinal: finalBalances.reduce((a, b) => a + b, 0),
+    externalPoolFinal: externalLedger,
+    totalInflow,
+    totalExogenous,
+    externalExhaustedEpoch: externalExhaustedEpoch < 0 ? null : externalExhaustedEpoch,
+    conservation: {
+      maxAbsDrift: consMaxAbsDrift,
+      minResidual: consMinResidual === Infinity ? 0 : consMinResidual,
+      closes: exogenousInflow ? null : consMaxAbsDrift === 0 && consMinResidual >= 0,
+    },
   };
   result.deathSpiral = judgeDeathSpiral(result);
   return result;
