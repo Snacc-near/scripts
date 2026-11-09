@@ -1,37 +1,37 @@
-// ECON (tugas 2) — Analisis sensitivitas ambang Fever `CrucibleTemp > 1400 mK`.
-// Melanjutkan temuan ECON-101..103: dengan volume siklus kecil, ekonomi hidup permanen di Hypothermia
-// dan jalur burn I-01 (350 bps) tidak pernah terpicu.
+// ECON (task 2) — Sensitivity analysis of the Fever threshold `CrucibleTemp > 1400 mK`.
+// Continues the ECON-101..103 findings: with a small cycle volume, the economy lives permanently in Hypothermia
+// and the I-01 burn path (350 bps) is never triggered.
 //
-// Rumus ambang (dari ADR-04 + ADR-27, tanpa perubahan formula):
+// Threshold formula (from ADR-04 + ADR-27, formula unchanged):
 //   CrucibleTemp = floor(1000 × V_decayed / max(M_supply, 1)) > 1400
-//   ⇔ V_decayed ≥ 1,4 × M_supply  (ketat: > 1,4·M karena threshold ">")
-//   ⇔ V_epoch ≥ 1,4 × M_supply + Δt_detik × VOLUME_DECAY_PER_SEC   (karena V_decayed = max(0, V_epoch − Δt·50))
+//   ⇔ V_decayed ≥ 1.4 × M_supply  (strict: > 1.4·M because the threshold is ">")
+//   ⇔ V_epoch ≥ 1.4 × M_supply + Δt_seconds × VOLUME_DECAY_PER_SEC   (because V_decayed = max(0, V_epoch − Δt·50))
 //
-// Jalankan: node econ-fever-sensitivity.mjs
+// Run: node econ-fever-sensitivity.mjs
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  runSimulation, assertFinite, SEED, EPOCHS, ASUMSI,
+  runSimulation, assertFinite, SEED, EPOCHS, ASSUMPTIONS,
   FEVER_THRESHOLD, HYPOTHERMIA_THRESHOLD, VOLUME_DECAY_PER_SEC,
 } from "./econ-sim.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const M = ASUMSI.INITIAL_SUPPLY; // 1.000.000
-const DT = ASUMSI.EPOCH_SEC;     // 3600 s
+const M = ASSUMPTIONS.INITIAL_SUPPLY; // 1,000,000
+const DT = ASSUMPTIONS.EPOCH_SEC;     // 3600 s
 
-// ============ 1. Ambang pasti (analitik) ============
-const vDecayedNeeded = FEVER_THRESHOLD + 1; // >1400 mK ketat → minimal 1401 mK pada integer floor
-// V_decayed ≥ 1401·M/1000 = 1.401.000 untuk mencapai ≥1401 mK; tepat di 1400 mK tidak Fever (">" ketat)
+// ============ 1. Exact threshold (analytic) ============
+const vDecayedNeeded = FEVER_THRESHOLD + 1; // strict >1400 mK → at least 1401 mK under integer floor
+// V_decayed ≥ 1401·M/1000 = 1,401,000 to reach ≥1401 mK; exactly 1400 mK is not Fever (strict ">")
 const vDecayedMin = Math.floor((vDecayedNeeded * M) / 1000);
 const vEpochMin = vDecayedMin + DT * VOLUME_DECAY_PER_SEC;
 const hypoVDecayedMax = Math.ceil((HYPOTHERMIA_THRESHOLD * M) / 1000) - 1; // <600 mK
 
-// ============ 2. Sweep kalibrasi (skala volume) ============
-// Interpretasi volumeScale: V_epoch menghitung VOLUME BRUTO protokol per transaksi — satu pembayaran
-// $SNACC disertai transfer NEP-245 dua arah + klaim/verifikasi (tiap kaki dihitung), atau ekuivalen
-// ekonomi ber-velocity lebih tinggi. Tidak mengubah perilaku agen, hanya pengukuran volume.
+// ============ 2. Calibration sweep (volume scale) ============
+// Interpretation of volumeScale: V_epoch counts the protocol's GROSS VOLUME per transaction — one
+// $SNACC payment accompanied by two-way NEP-245 transfers + claim/verification (each leg counted), or an
+// economically equivalent higher-velocity flow. It does not change agent behavior, only the volume measurement.
 const velocityScales = [1, 3, 5, 10, 25, 50, 100, 200, 500];
 const fixedScales = [1, 10, 50, 100];
 
@@ -56,78 +56,78 @@ const allRows = [...velRows, ...fixRows];
 const inTarget = allRows.filter((r) => r.feverPct >= 5 && r.feverPct <= 30);
 const targetRange = inTarget.length
   ? inTarget.map((r) => `${r.model}×${r.scale} (${r.feverPct.toFixed(1)}%)`).join(", ")
-  : "tidak ditemukan dalam skala yang diuji";
+  : "not found within the tested scales";
 
-const rowLine = (r) => `| ${r.model} | ×${r.scale} | ${r.feverPct.toFixed(2)}% | ${r.hypoPct.toFixed(2)}% | ${r.normalPct.toFixed(2)}% | ${Math.round(r.tempAvg)} | ${Math.round(r.tempMax)} | ${r.burn.toLocaleString("id-ID")} | ${r.treasuryMin.toLocaleString("id-ID")} | ${r.aliveFinal ?? r.alive} |`;
+const rowLine = (r) => `| ${r.model} | ×${r.scale} | ${r.feverPct.toFixed(2)}% | ${r.hypoPct.toFixed(2)}% | ${r.normalPct.toFixed(2)}% | ${Math.round(r.tempAvg)} | ${Math.round(r.tempMax)} | ${r.burn.toLocaleString("en-US")} | ${r.treasuryMin.toLocaleString("en-US")} | ${r.aliveFinal ?? r.alive} |`;
 
-// Ekstrapolasi: kapan Fever tercapai hanya dari penyusutan supply (tanpa ubah volume)?
-// M_needed: 1,4 × M ≤ V_decayed_rata2 → M ≤ V_decayed_rata2 / 1,4
-const vDecayedAvg = Math.max(0, (velRows[0].tempAvg * M) / 1000); // dari tempAvg baseline: temp·M/1000
+// Extrapolation: when is Fever reached from supply shrinkage alone (without changing volume)?
+// M_needed: 1.4 × M ≤ V_decayed_avg → M ≤ V_decayed_avg / 1.4
+const vDecayedAvg = Math.max(0, (velRows[0].tempAvg * M) / 1000); // from baseline tempAvg: temp·M/1000
 const mMaxForFever = Math.floor(vDecayedAvg / 1.4);
 const burnPerEpoch = velRows[0].burn / EPOCHS;
 const epochsToFeverByBurn = burnPerEpoch > 0 ? Math.ceil((M - mMaxForFever) / burnPerEpoch) : Infinity;
 
-const report = `# Sensitivitas Ambang Fever \`CrucibleTemp > 1400 mK\` (lanjutan temuan ECON-101..103)
+const report = `# Fever Threshold Sensitivity \`CrucibleTemp > 1400 mK\` (follow-up to the ECON-101..103 findings)
 
-Dibuat otomatis oleh \`scripts/econ-fever-sensitivity.mjs\` (seed ${SEED}, ${EPOCHS} epoch, model utama: baseline-velocity). Tidak ada formula/parameter kontrak yang diubah — ini analisis untuk keputusan pemilik.
+Generated automatically by \`scripts/econ-fever-sensitivity.mjs\` (seed ${SEED}, ${EPOCHS} epochs, main model: baseline-velocity). No contract formula/parameter was changed — this is an analysis for the owner's decision.
 
-## 1. Ambang pasti (rumus, tanpa simulasi)
+## 1. Exact threshold (formula, no simulation)
 
-Dari ADR-04 + ADR-27 (formula kontrak, tidak diubah):
+From ADR-04 + ADR-27 (contract formula, unchanged):
 
 \`\`\`
 CrucibleTemp = floor(1000 × V_decayed / max(M_supply, 1)) > 1400 mK
-⇔ V_decayed > 1,4 × M_supply          (threshold ">" ketat; 1400 mK tepat TIDAK Fever)
-⇔ V_epoch  > 1,4 × M_supply + Δt_detik × VOLUME_DECAY_PER_SEC
+⇔ V_decayed > 1.4 × M_supply          (strict ">" threshold; exactly 1400 mK is NOT Fever)
+⇔ V_epoch  > 1.4 × M_supply + Δt_seconds × VOLUME_DECAY_PER_SEC
 \`\`\`
 
-Dengan supply awal M = ${M.toLocaleString("id-ID")} dan Δt = ${DT} s (1 epoch):
+With initial supply M = ${M.toLocaleString("en-US")} and Δt = ${DT} s (1 epoch):
 
-- **V_decayed minimum untuk Fever: ${vDecayedMin.toLocaleString("id-ID")} $SNACC = 1,4× M_supply.**
-- **V_epoch (bruto sebelum decay) minimum: ${vEpochMin.toLocaleString("id-ID")} $SNACC per epoch** (= 1,4× M + ${ (DT * VOLUME_DECAY_PER_SEC).toLocaleString("id-ID")} konsumsi decay).
-- Artinya: **volume epoch harus lebih besar dari 140% total supply** agar burn I-01 aktif. Sebagai pembanding, batas atas Hypothermia: V_decayed ≤ ${hypoVDecayedMax.toLocaleString("id-ID")} (0,6× M).
-- Decay memakan ${(DT * VOLUME_DECAY_PER_SEC / M * 100).toFixed(1)}% dari supply per epoch (${ (DT * VOLUME_DECAY_PER_SEC).toLocaleString("id-ID")} $SNACC/epoch).
+- **Minimum V_decayed for Fever: ${vDecayedMin.toLocaleString("en-US")} $SNACC = 1.4× M_supply.**
+- **Minimum V_epoch (gross before decay): ${vEpochMin.toLocaleString("en-US")} $SNACC per epoch** (= 1.4× M + ${ (DT * VOLUME_DECAY_PER_SEC).toLocaleString("en-US")} decay consumption).
+- Meaning: **epoch volume must exceed 140% of total supply** for the I-01 burn to activate. For comparison, the Hypothermia upper bound: V_decayed ≤ ${hypoVDecayedMax.toLocaleString("en-US")} (0.6× M).
+- Decay consumes ${(DT * VOLUME_DECAY_PER_SEC / M * 100).toFixed(1)}% of supply per epoch (${ (DT * VOLUME_DECAY_PER_SEC).toLocaleString("en-US")} $SNACC/epoch).
 
-## 2. Sweep kalibrasi — % epoch per zona suhu
+## 2. Calibration sweep — % of epochs per temperature zone
 
-Interpretasi \`volumeScale\` (ASUMSI, eksplisit): V_epoch menghitung **volume bruto protokol** — satu aksi transmutasi melibatkan pembayaran $SNACC + transfer NEP-245 dua arah + kuitansi/verifikasi; bila semua kaki dihitung, volume terukur bernilai kelipatan nominal siklus. Skala TIDAK mengubah saldo/fee/perilaku — hanya pengukuran V_epoch.
+Interpretation of \`volumeScale\` (ASSUMPTION, explicit): V_epoch counts the **protocol's gross volume** — one transmutation action involves a $SNACC payment + two-way NEP-245 transfers + receipt/verification; if every leg is counted, the measured volume is a multiple of the cycle nominal. The scale does NOT change balances/fees/behavior — only the V_epoch measurement.
 
-| Model | Skala | Fever | Hypothermia | Normal | Temp rata² (mK) | Temp max (mK) | Total burn | Treasury min | Populasi akhir |
+| Model | Scale | Fever | Hypothermia | Normal | Avg temp (mK) | Max temp (mK) | Total burn | Treasury min | Final population |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${allRows.map(rowLine).join("\n")}
 
-### Rentang yang membuat Fever tercapai secara periodik wajar (target 5–30% epoch)
+### Range that makes Fever reached periodically at a reasonable rate (target 5–30% of epochs)
 
 **${targetRange}**
 
-## 3. Ekstrapolasi: bisakah Fever tercapai hanya karena supply menyusut?
+## 3. Extrapolation: can Fever be reached merely because supply shrinks?
 
-Tanpa mengubah volume: Fever tercapai bila M ≤ V_decayed_rata² / 1,4 ≈ **${mMaxForFever.toLocaleString("id-ID")} $SNACC**. Dengan laju burn baseline (${burnPerEpoch.toFixed(1)} $SNACC/epoch), dari M = ${M.toLocaleString("id-ID")} dibutuhkan ±**${epochsToFeverByBurn === Infinity ? ">10^7" : (epochsToFeverByBurn / 1000).toFixed(0)} ribu epoch (±${Math.round(epochsToFeverByBurn / 24 / 365)} tahun jam-epoch)** — jauh di luar horizon 10.000 epoch. **Kesimpulan: penyusutan supply saja tidak akan pernah mengaktifkan Fever dalam horizon yang relevan.**
+Without changing volume: Fever is reached when M ≤ V_decayed_avg / 1.4 ≈ **${mMaxForFever.toLocaleString("en-US")} $SNACC**. At the baseline burn rate (${burnPerEpoch.toFixed(1)} $SNACC/epoch), from M = ${M.toLocaleString("en-US")} it takes about **${epochsToFeverByBurn === Infinity ? ">10^7" : (epochsToFeverByBurn / 1000).toFixed(0)} thousand epochs (about ${Math.round(epochsToFeverByBurn / 24 / 365)} years of hourly epochs)** — far beyond the 10,000-epoch horizon. **Conclusion: supply shrinkage alone will never activate Fever within a relevant horizon.**
 
-## 4. Rekomendasi — OPSI untuk pemilik (tanpa mengubah apa pun di kontrak)
+## 4. Recommendation — OPTIONS for the owner (without changing anything in the contract)
 
-| Opsi | Isi | Trade-off |
+| Option | Content | Trade-off |
 | --- | --- | --- |
-| **A. Terima apa adanya** | Dokumentasikan jujur: termostat Snacc efektif satu-arah (Hypothermia rebate aktif; Fever/burn praktis tidak pernah terpicu untuk ekonomi siklus kecil). Fever jadi "ceiling teoretis". | Paling jujur & nol kerja. Tapi \`ft_burn\`/I-01 dan "reactive supply" lemah sebagai diferensiasi track \`memecoins\` — kompetitor/juri bisa menyorot jalur burn tak teruji di mainnet. |
-| **B. Ubah definisi V_epoch (bukan formula)** | Hitung V_epoch sebagai **volume bruto multi-kaki** (pembayaran $SNACC + transfer NEP-245 + klaim TEE tiap dihitung) — ekuivalen volumeScale 3–10 pada sweep. | Tidak menyentuh formula ADR-04/threshold 1400. Tapi butuh keputusan apa yang "dihitung volume" — ada risiko inflasi metrik kosmetik (perlu definisi ketat per kaki). |
-| **C. Ubah threshold/angka (1400/600 mK)** | Mis. Fever > 140 mK (V_decayed > 0,14× M) agar tercapai periodik oleh ekonomi nyata. | Mengubah angka kamus resmi (Model Data) = perubahan spec + semua dokumen turunan; paling invasif; perlu justifikasi desain baru. |
-| **D. Skala produksi (game-side)** | Naikkan nominal siklus produksi nyata (bukan hanya pengukuran) — mis. modal inkubasi & katalis ×50 — sehingga V_epoch riil mendekati 1,4× M. | Mengubah seluruh keseimbangan ekonomi (modal, fee, likuidasi); sweep menunjukkan fixed ×100 masih 0% Fever (butuh > ×1000) — re-balancing penuh & sangat invasif. |
+| **A. Accept as-is** | Document honestly: the Snacc thermostat is effectively one-way (Hypothermia rebate active; Fever/burn is practically never triggered for a small-cycle economy). Fever becomes a "theoretical ceiling". | Most honest & zero work. But \`ft_burn\`/I-01 and "reactive supply" are weak as differentiation for the \`memecoins\` track — competitors/judges can highlight the burn path untested on mainnet. |
+| **B. Change the V_epoch definition (not the formula)** | Count V_epoch as **gross multi-leg volume** ($SNACC payment + NEP-245 transfer + TEE claim, each counted) — equivalent to volumeScale 3–10 in the sweep. | Does not touch the ADR-04 formula/1400 threshold. But it needs a decision on what "counts as volume" — there is a risk of cosmetic metric inflation (needs a strict definition per leg). |
+| **C. Change the threshold/numbers (1400/600 mK)** | E.g. Fever > 140 mK (V_decayed > 0.14× M) so it is reached periodically by the real economy. | Changes the official dictionary numbers (Data Model) = a spec change + all derived documents; the most invasive; needs a new design justification. |
+| **D. Production scale (game-side)** | Raise the nominal of the real production cycle (not just the measurement) — e.g. incubation capital & catalyst ×50 — so real V_epoch approaches 1.4× M. | Changes the whole economic balance (capital, fees, liquidation); the sweep shows fixed ×100 is still 0% Fever (needs > ×1000) — full re-balancing & very invasive. |
 
-**Pola dari sweep (baca sebelum memilih):**
+**Patterns from the sweep (read before choosing):**
 
-- Model **fixed** bahkan pada ×100 masih 0,00% Fever (max 737 mK) — **satu-satunya jalan realistis menuju Fever periodik adalah interpretasi volume-bruto multi-kaki (Opsi B)**, bukan skala siklus kecil.
-- Model **velocity** sudah 37,6% Fever pada ×1 (baseline ECON-101..103) — tetapi sangat sensitif: ×3 melompat ke 68%, dan di semua skala velocity ≥ ×3 populasi runtuh (10 → 1 strain; konsentrasi ekstrem).
-- **Tidak ada skala yang diuji menghasilkan 5–30% Fever tanpa efek samping populasi.** Konfigurasi terdekat dengan zona target: velocity ×50–×100 (Fever 72–76%) — masih jauh di atas target; sebaliknya, model fixed butuh skala > ×1000 yang tak teruji.
-- **Implikasi jujur:** threshold 1400 mK = 140% supply per epoch berada di antara dua rezim — ekonomi siklus kecil (fixed) tak pernah menyentuhnya, ekonomi velocity tinggi justru melewatinya jauh. Desain threshold perlu dikalibrasi ulang terhadap definisi V_epoch yang dipilih (Opsi B), bukan sekadar discale. Keputusan tetap di pemilik; dokumen ini hanya opsi + angka.
+- The **fixed** model, even at ×100, is still 0.00% Fever (max 737 mK) — **the only realistic route to periodic Fever is the multi-leg gross-volume interpretation (Option B)**, not a small-cycle scale.
+- The **velocity** model is already 37.6% Fever at ×1 (ECON-101..103 baseline) — but very sensitive: ×3 jumps to 68%, and at every velocity scale ≥ ×3 the population collapses (10 → 1 strain; extreme concentration).
+- **No tested scale yields 5–30% Fever without population side effects.** The closest configuration to the target zone: velocity ×50–×100 (Fever 72–76%) — still far above the target; conversely, the fixed model needs a scale > ×1000, which is untested.
+- **Honest implication:** the 1400 mK threshold = 140% of supply per epoch sits between two regimes — a small-cycle economy (fixed) never touches it, a high-velocity economy goes far past it. The threshold design needs recalibrating against the chosen V_epoch definition (Option B), not merely scaling. The decision stays with the owner; this document only gives options + numbers.
 
-## 5. Catatan kejujuran
+## 5. Honesty notes
 
-- Angka sweep bergantung pada ASUMSI model aktivitas agen (gelombang sentimen, dst. — lihat ASUMSI ECON-101..103); pola **non-linear** (Fever naik tajam dekat ambang) lebih dapat dipercaya daripada nilai titik persis.
-- Tidak ada perubahan kontrak/spesifikasi yang dilakukan; threshold 1400/600 mK dan VOLUME_DECAY_PER_SEC = 50 tetap persis dari vault.
+- The sweep numbers depend on the ASSUMPTIONS of the agent activity model (sentiment waves, etc. — see the ECON-101..103 ASSUMPTIONS); the **non-linear** pattern (Fever rises sharply near the threshold) is more trustworthy than the exact point values.
+- No contract/spec change was made; the 1400/600 mK thresholds and VOLUME_DECAY_PER_SEC = 50 remain exactly as in the vault.
 `;
 
 console.log(report);
 const docsDir = join(__dirname, "..", "docs");
 mkdirSync(docsDir, { recursive: true });
 writeFileSync(join(docsDir, "econ-fever-sensitivity.md"), report, "utf8");
-console.error(`OK — hasil ditulis ke ${join(docsDir, "econ-fever-sensitivity.md")}`);
+console.error(`OK — result written to ${join(docsDir, "econ-fever-sensitivity.md")}`);

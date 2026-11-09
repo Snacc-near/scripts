@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// deploy-testnet.mjs — deploy + migrate kontrak Snacc ke testnet (OPS gladi).
+// deploy-testnet.mjs — deploy + migrate the Snacc contract to testnet (OPS gladi).
 //   node scripts/deploy-testnet.mjs --key ../../.secrets/snacc/snacc-v001.testnet.json \
 //     --wasm ../contracts/target/wasm32-unknown-unknown/release/snacc.wasm --contract snacc-v001.testnet
-// Kunci dibaca dari file, TIDAK PERNAH dicetak/di-log. Testnet only.
+// The key is read from a file and NEVER printed/logged. Testnet only.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
@@ -23,7 +23,7 @@ if (!contractId.endsWith(".testnet")) throw new Error("testnet only");
 const provider = new JsonRpcProvider({ url: arg("rpc", "https://near-testnet.drpc.org") });
 const keyJson = JSON.parse(readFileSync(keyPath, "utf8"));
 const secret = keyJson.secret_key ?? keyJson.private_key;
-if (!secret) throw new Error("file kunci tanpa secret_key/private_key");
+if (!secret) throw new Error("key file without secret_key/private_key");
 const account = new Account(contractId, provider, KeyPairSigner.fromSecretKey(secret));
 
 const code = readFileSync(wasmPath);
@@ -36,7 +36,7 @@ const migrated = await account.callFunctionRaw({
 });
 console.log(`MIGRATE_TX=${migrated.transaction.hash}`);
 
-// Verifikasi view pasca-migrate.
+// Post-migrate view verification.
 const view = async (method, args = {}) => {
   const r = await provider.query({ request_type: "call_function", finality: "final", account_id: contractId, method_name: method, args_base64: Buffer.from(JSON.stringify(args)).toString("base64") });
   return JSON.parse(Buffer.from(r.result).toString("utf8"));

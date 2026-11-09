@@ -1,28 +1,28 @@
-// ECON-111 FINAL — Sweep VOLUME_SCALE untuk definisi Opsi B (V_epoch = omset ekonomi bruto
-// multi-kaki, keputusan pemilik 2026-11-07). Band target (dari brief pemilik):
-//   Fever 5–30% epoch aktif · Hypothermia saat sepi · populasi tidak runtuh · treasury solvent.
-// Jalankan: node econ-calib-opsib.mjs
+// ECON-111 FINAL — VOLUME_SCALE sweep for the Option B definition (V_epoch = gross multi-leg
+// economic turnover, owner decision 2026-11-07). Target band (from the owner brief):
+//   Fever 5–30% of epochs active · Hypothermia when quiet · population does not collapse · treasury solvent.
+// Run: node econ-calib-opsib.mjs
 //
-// Semua angka dihasilkan kode dari mesin `runSimulation` (econ-sim.mjs) — tidak ada angka diketik.
+// All numbers are produced by code from the `runSimulation` engine (econ-sim.mjs) — no hand-typed numbers.
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { runSimulation, assertFinite, SEED, EPOCHS, ASUMSI, FREEZE_START, FREEZE_END } from "./econ-sim.mjs";
+import { runSimulation, assertFinite, SEED, EPOCHS, ASSUMPTIONS, FREEZE_START, FREEZE_END } from "./econ-sim.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SCALES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 30, 40, 60, 80, 100, 150, 200];
-// Usulan fallback threshold (diisi dari hasil sweep; diverifikasi di bawah bila terisi).
+// Fallback threshold proposal (filled from the sweep result; verified below when filled).
 const FALLBACK = {
   scale: null, feverThreshold: null, hypothermiaThreshold: null,
 };
 
-// Kriteria band (dinyatakan eksplisit — brief pemilik + operasionalisasi di sini):
-// - Fever 5–30% epoch (zona 1 aktif tapi tidak permanen);
-// - Hypothermia muncul saat sepi (freeze scenario: hypoPct tinggi);
-// - Populasi sehat: aliveFinal ≥ 100 (≥50% dari 200 awal) DAN medianBalance > 0;
-// - Treasury solvent: tidak pernah negatif dan minimum > 0.
+// Band criteria (stated explicitly — owner brief + operationalization here):
+// - Fever 5–30% of epochs (zone 1 active but not permanent);
+// - Hypothermia appears when quiet (freeze scenario: high hypoPct);
+// - Healthy population: aliveFinal ≥ 100 (≥50% of the initial 200) AND medianBalance > 0;
+// - Treasury solvent: never negative and minimum > 0.
 function meetsBand(r) {
   return (
     r.feverPct >= 5 && r.feverPct <= 30 &&
@@ -47,13 +47,13 @@ for (const scale of SCALES) {
   rows.push({ scale, r });
 }
 
-// ==== Fallback (bila band tak tercapai pada skala mana pun) ====
-// HANYA FEVER_THRESHOLD yang diturunkan; HYPOTHERMIA tetap 600 mK (spec). Alasan:
-// burn Fever mengenai treasury/supply (bukan saldo strain) sehingga TIDAK mengubah
-// dinamika populasi; menurunkan HYPOTHERMIA memangkas rebate → populasi kolaps
-// (terbukti: threshold hypo 190 → populasi 53). FEVER' wajib > HYPOTHERMIA (600)
-// agar zona Normal tidak kosong (3 warna). Pencarian deterministik kecil:
-// skala sehat {4,5,6} × FEVER' {610,620,650} — pilih in-band dengan populasi terbesar.
+// ==== Fallback (when the band is not reached at any scale) ====
+// ONLY FEVER_THRESHOLD is lowered; HYPOTHERMIA stays at 600 mK (spec). Reason:
+// the Fever burn hits treasury/supply (not strain balances) so it does NOT change
+// the population dynamics; lowering HYPOTHERMIA cuts the rebate → population collapses
+// (proven: hypo threshold 190 → population 53). FEVER' must be > HYPOTHERMIA (600)
+// so the Normal zone is not empty (3 colors). Small deterministic search:
+// healthy scales {4,5,6} × FEVER' {610,620,650} — pick the in-band one with the largest population.
 const healthy = rows.filter(({ r }) => r.aliveFinal >= 80 && r.medianBalance > 0 && !r.treasuryEverNegative);
 if (healthy.length > 0 && !rows.some(({ r }) => meetsBand(r))) {
   const scales = [...new Set(healthy.map(({ scale }) => scale))].filter((sc) => sc <= 6).sort((a, b) => b - a);
@@ -61,7 +61,7 @@ if (healthy.length > 0 && !rows.some(({ r }) => meetsBand(r))) {
   for (const sc of scales) {
     for (const fever of [610, 620, 650]) {
       const r = runSimulation({
-        label: `opsib-fallback-cari scale=${sc} fever=${fever}`,
+        label: `opsib-fallback-search scale=${sc} fever=${fever}`,
         volumeModel: "legs",
         volumeScale: sc,
         feverThreshold: fever,
@@ -79,13 +79,13 @@ if (healthy.length > 0 && !rows.some(({ r }) => meetsBand(r))) {
     ({ scale, fever: feverThreshold, feverPct: r.feverPct, alive: r.aliveFinal, inBand }));
 }
 
-// ==== Verifikasi fallback threshold (usulan) — baseline tiap kandidat + freeze untuk yang terpilih ====
+// ==== Fallback threshold verification (proposal) — baseline of each candidate + freeze for the chosen one ====
 let fallbackRuns = [];
 if (FALLBACK.candidates) {
   for (const c of FALLBACK.candidates) {
     fallbackRuns.push({ ...c, freeze: false, r: c.r, inBand: c.inBand });
   }
-  // Freeze-verify kandidat terpilih (falsifikasi "Hypothermia saat sepi").
+  // Freeze-verify the chosen candidate (falsification of "Hypothermia when quiet").
   const chosen = fallbackRuns.find((f) => f.inBand) ?? fallbackRuns[0];
   const rf = runSimulation({
     label: `opsib-fallback scale=${chosen.scale} fever=${chosen.feverThreshold} hypo=${chosen.hypothermiaThreshold} freeze`,
@@ -99,7 +99,7 @@ if (FALLBACK.candidates) {
   fallbackRuns.push({ ...chosen, freeze: true, r: rf });
 }
 
-// Freeze (falsifikasi "Hypothermia saat sepi") pada 3 kandidat terbaik.
+// Freeze (falsification of "Hypothermia when quiet") on the 3 best candidates.
 const candidates = rows.filter(({ r }) => meetsBand(r));
 const freezeRuns = [];
 for (const { scale } of (candidates.length ? candidates : rows).slice(0, 3)) {
@@ -113,16 +113,16 @@ for (const { scale } of (candidates.length ? candidates : rows).slice(0, 3)) {
   assertFinite({ fever: r.feverPct, hypo: r.hypoPct, alive: r.aliveFinal, tmin: r.treasuryMin === Infinity ? 0 : r.treasuryMin });
 }
 
-// ======== Render laporan sweep (angka 100% dari hasil run) ========
-const fmtN = (x) => Math.round(x).toLocaleString("id-ID");
+// ======== Render the sweep report (numbers 100% from the run results) ========
+const fmtN = (x) => Math.round(x).toLocaleString("en-US");
 const pct = (x) => x.toFixed(1);
 
 const tableRows = rows.map(({ scale, r }) =>
-  `| ${scale} | ${pct(r.feverPct)}% | ${pct(r.hypoPct)}% | ${pct(r.normalPct)}% | ${fmtN(r.tempP50)} | ${fmtN(r.tempP85)} | ${r.aliveFinal} | ${fmtN(r.medianBalance)} | ${fmtN(r.supplyFinal)} | ${fmtN(r.treasuryMin)} | ${fmtN(r.totalBurned)} | ${fmtN(r.totalRebate)} | ${r.treasuryEverNegative ? "NEGATIF" : "solvent"} | ${meetsBand(r) ? "✅" : "—"} |`
+  `| ${scale} | ${pct(r.feverPct)}% | ${pct(r.hypoPct)}% | ${pct(r.normalPct)}% | ${fmtN(r.tempP50)} | ${fmtN(r.tempP85)} | ${r.aliveFinal} | ${fmtN(r.medianBalance)} | ${fmtN(r.supplyFinal)} | ${fmtN(r.treasuryMin)} | ${fmtN(r.totalBurned)} | ${fmtN(r.totalRebate)} | ${r.treasuryEverNegative ? "NEGATIVE" : "solvent"} | ${meetsBand(r) ? "✅" : "—"} |`
 ).join("\n");
 
 const freezeRows = freezeRuns.map(({ scale, r }) =>
-  `| ${scale} | ${pct(r.feverPct)}% | ${pct(r.hypoPct)}% | ${r.aliveFinal} | ${fmtN(r.treasuryMin)} | ${r.deathSpiral ? "YA" : "TIDAK"} |`
+  `| ${scale} | ${pct(r.feverPct)}% | ${pct(r.hypoPct)}% | ${r.aliveFinal} | ${fmtN(r.treasuryMin)} | ${r.deathSpiral ? "YES" : "NO"} |`
 ).join("\n");
 
 const kTotals = rows.find(({ scale }) => scale === 6) ?? rows[0];
@@ -130,69 +130,69 @@ const kLine = [
   `K1 fee: ${fmtN(kTotals.r.legs.k1)}`,
   `K2 mt_burn: ${fmtN(kTotals.r.legs.k2)}`,
   `K3 mt_mint: ${fmtN(kTotals.r.legs.k3)}`,
-  `K4 likuidasi: ${fmtN(kTotals.r.legs.k4)}`,
+  `K4 liquidation: ${fmtN(kTotals.r.legs.k4)}`,
 ].join(" · ");
 
-const report = `# ECON-111 — Sweep VOLUME_SCALE (Definisi Opsi B, seed ${SEED})
+const report = `# ECON-111 — VOLUME_SCALE Sweep (Option B definition, seed ${SEED})
 
-Dihasilkan otomatis oleh \`scripts/econ-calib-opsib.mjs\` — ${SCALES.length} skala × ${EPOCHS} epoch, model volume \`legs\` (Opsi B).
+Generated automatically by \`scripts/econ-calib-opsib.mjs\` — ${SCALES.length} scales × ${EPOCHS} epochs, \`legs\` volume model (Option B).
 
-## Definisi Opsi B — V_epoch = omset ekonomi bruto multi-kaki
+## Option B definition — V_epoch = gross multi-leg economic turnover
 
-Diacu per epoch dari aksi produksi yang tercatat kontrak. Satuan dasar: \`$SNACC\` (testnet).
-\`VOLUME_SCALE\` (unit) adalah pengali nilai $SNACC-ekuivalen **per unit molekul** pada kaki K2/K3 —
-satuan ekonomi molekul, BUKAN pengali kas.
+Referenced per epoch from production actions recorded by the contract. Base unit: \`$SNACC\` (testnet).
+\`VOLUME_SCALE\` (unit) is the multiplier of the $SNACC-equivalent value **per molecule unit** on legs K2/K3 —
+a molecule economic unit, NOT a cash multiplier.
 
-| Kaki | Sumber on-chain | Rumus | Satuan |
+| Leg | On-chain source | Formula | Unit |
 | --- | --- | --- | --- |
-| K1 | \`snacc_catalyst_fee\` (F2/F4) | fee per tx, dijumlah | $SNACC (×1) |
-| K2 | \`mt_burn\` 9 molekul (F2/F5/F6) | unit_dibakar × VOLUME_SCALE × P_BASE | $SNACC-ekuivalen |
-| K3 | \`mt_mint\` 9 molekul (F2/F5) | unit_dicetak × VOLUME_SCALE × P_BASE | $SNACC-ekuivalen |
-| K4 | mutasi kas $SNACC non-fee: kas likuidasi (F6) | bounty + recovery yang berpindah | $SNACC (×1) |
+| K1 | \`snacc_catalyst_fee\` (F2/F4) | fee per tx, summed | $SNACC (×1) |
+| K2 | \`mt_burn\` 9 molecules (F2/F5/F6) | units_burned × VOLUME_SCALE × P_BASE | $SNACC-equivalent |
+| K3 | \`mt_mint\` 9 molecules (F2/F5) | units_minted × VOLUME_SCALE × P_BASE | $SNACC-equivalent |
+| K4 | non-fee $SNACC cash movements: liquidation cash (F6) | bounty + recovery that moves | $SNACC (×1) |
 
-**Inklusi:** semua aksi produksi (extract/transmute/synthesize) untuk K1–K3; likuidasi untuk K4.
-**Eksklusi (anti-feedback ke suhu):** rebate I-04, klaim dividen DK-033, transfer antar akun
-(\`ft_transfer\`), dan modal inkubasi F1 — semua transfer internal/modal, bukan omset produksi.
-Rumus suhu tidak berubah: \`CrucibleTemp = floor(1000 × V_decayed / max(M,1))\` (ADR-04),
-\`V_decayed = max(0, V_epoch − 3600 × 50)\` (ADR-27); threshold 1400/600 TIDAK diubah.
+**Inclusion:** all production actions (extract/transmute/synthesize) for K1–K3; liquidation for K4.
+**Exclusion (anti-feedback into temperature):** rebate I-04, dividend claims DK-033, transfers between accounts
+(\`ft_transfer\`), and incubation capital F1 — all internal transfers/capital, not production turnover.
+The temperature formula is unchanged: \`CrucibleTemp = floor(1000 × V_decayed / max(M,1))\` (ADR-04),
+\`V_decayed = max(0, V_epoch − 3600 × 50)\` (ADR-27); the 1400/600 thresholds are NOT changed.
 
-Rincian kaki pada skala ${kTotals.scale} (baseline): ${kLine}.
+Leg breakdown at scale ${kTotals.scale} (baseline): ${kLine}.
 
-## Tabel sweep (baseline 10.000 epoch, model legs)
+## Sweep table (baseline 10,000 epochs, legs model)
 
-| VOLUME_SCALE | Fever | Hypo | Normal | Temp p50 | Temp p85 | Populasi akhir | Median saldo | Supply akhir | Treasury min | Total burn | Total rebate | Treasury | Band? |
+| VOLUME_SCALE | Fever | Hypo | Normal | Temp p50 | Temp p85 | Final population | Median balance | Final supply | Treasury min | Total burn | Total rebate | Treasury | Band? |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${tableRows}
 
-**Kriteria band** (dinyatakan eksplisit): Fever 5–30% · populasi akhir ≥ 100 (≥50% dari 200) dan
-median saldo > 0 · treasury tidak pernah negatif dan minimum > 0 · bukan death spiral.
-"Hypothermia saat sepi" diverifikasi terpisah lewat skenario freeze di bawah.
+**Band criteria** (stated explicitly): Fever 5–30% · final population ≥ 100 (≥50% of 200) and
+median balance > 0 · treasury never negative and minimum > 0 · not a death spiral.
+"Hypothermia when quiet" is verified separately through the freeze scenario below.
 
-## Falsifikasi freeze (epoch ${FREEZE_START}–${FREEZE_END} tanpa aktivitas) pada kandidat band
+## Freeze falsification (epochs ${FREEZE_START}–${FREEZE_END} without activity) on the band candidates
 
-| VOLUME_SCALE | Fever | Hypo | Populasi akhir | Treasury min | Death spiral |
+| VOLUME_SCALE | Fever | Hypo | Final population | Treasury min | Death spiral |
 | --- | --- | --- | --- | --- | --- |
 ${freezeRows}
 
-### Pencarian fallback (skala sehat × FEVER' > 600; HYPOTHERMIA tetap 600)
+### Fallback search (healthy scale × FEVER' > 600; HYPOTHERMIA stays 600)
 
-| Skala | FEVER' | Fever | Populasi | In-band (fever 5–30%, bukan spiral, normal > 0) |
+| Scale | FEVER' | Fever | Population | In-band (fever 5–30%, not a spiral, normal > 0) |
 | --- | --- | --- | --- | --- |
 ${(FALLBACK.search ?? []).map((c) => `| ${c.scale} | ${c.fever} | ${pct(c.feverPct)}% | ${c.alive} | ${c.inBand ? "✅" : "—"} |`).join("\n")}
 
-## Verifikasi usulan fallback threshold (bila band tak tercapai)
+## Fallback threshold proposal verification (when the band is not reached)
 
-${fallbackRuns.length === 0 ? "TIDAK DIPERLUKAN — band tercapai pada skala di atas." : fallbackRuns.map(({ freeze, r, scale, feverThreshold, hypothermiaThreshold, inBand }) =>
-`- \`FEVER=${feverThreshold} mK, HYPOTHERMIA=${hypothermiaThreshold} mK (tetap), skala ${scale}${freeze ? ", FREEZE" : ""}\`: Fever ${pct(r.feverPct)}% · Hypo ${pct(r.hypoPct)}% · Normal ${pct(r.normalPct)}% · populasi ${r.aliveFinal} · median ${fmtN(r.medianBalance)} · treasury min ${fmtN(r.treasuryMin)} · burn ${fmtN(r.totalBurned)} · rebate ${fmtN(r.totalRebate)} · death spiral ${r.deathSpiral ? "YA" : "TIDAK"}${freeze ? "" : inBand ? " — **IN BAND**" : ""}`).join("\n")}
+${fallbackRuns.length === 0 ? "NOT NEEDED — the band is reached at the scales above." : fallbackRuns.map(({ freeze, r, scale, feverThreshold, hypothermiaThreshold, inBand }) =>
+`- \`FEVER=${feverThreshold} mK, HYPOTHERMIA=${hypothermiaThreshold} mK (unchanged), scale ${scale}${freeze ? ", FREEZE" : ""}\`: Fever ${pct(r.feverPct)}% · Hypo ${pct(r.hypoPct)}% · Normal ${pct(r.normalPct)}% · population ${r.aliveFinal} · median ${fmtN(r.medianBalance)} · treasury min ${fmtN(r.treasuryMin)} · burn ${fmtN(r.totalBurned)} · rebate ${fmtN(r.totalRebate)} · death spiral ${r.deathSpiral ? "YES" : "NO"}${freeze ? "" : inBand ? " — **IN BAND**" : ""}`).join("\n")}
 
-## P_base NPC (usulan)
+## NPC P_base (proposal)
 
-Dihasilkan dari ekonomi sweep — lihat \`reports/econ-report-3.md\` untuk argumen lengkap.
-Katalis fee per tx = ${ASUMSI.CATALYST_FEE} $SNACC; satu siklus memutar 10 molekul;
-omset per tx pada skala ${kTotals.scale} ≈ ${fmtN((ASUMSI.CATALYST_FEE + 2 * 10 * kTotals.scale * ASUMSI.P_BASE))} $SNACC-ekuivalen.
+Derived from the sweep economy — see \`reports/econ-report-3.md\` for the full argument.
+Catalyst fee per tx = ${ASSUMPTIONS.CATALYST_FEE} $SNACC; one cycle turns over 10 molecules;
+turnover per tx at scale ${kTotals.scale} ≈ ${fmtN((ASSUMPTIONS.CATALYST_FEE + 2 * 10 * kTotals.scale * ASSUMPTIONS.P_BASE))} $SNACC-equivalent.
 `;
 
 mkdirSync(join(__dirname, "..", "docs"), { recursive: true });
 writeFileSync(join(__dirname, "..", "docs", "econ-sweep-opsib.md"), report, "utf8");
 console.log(report);
-console.error("OK — ditulis ke docs/econ-sweep-opsib.md");
+console.error("OK — written to docs/econ-sweep-opsib.md");

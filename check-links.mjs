@@ -1,27 +1,27 @@
 #!/usr/bin/env node
-// check-links.mjs — OPS-115 / DK-085: link & hash yang dirujuk di dokumen harus ADA.
-// Sumber: README.md, HACKATHON.md, docs/*.md
-// Pemeriksaan:
-//  A) path dalam `backtick` → coba relatif-ke-file, relatif-repo-root, relatif-project-root
-//     (reports/… ada di root proyek), lalu fallback basename-search. Token tanpa "/" yang
-//     tidak ketemu = filename mention → WARN (bukan gagal); token ber-/ yang tidak ketemu = FAIL.
-//  B) hash commit dalam `backtick` (hex 7/40) → cari di SEMUA repo nested (payung, contracts,
-//     scripts, backend, sdk, oracle-tee, frontend); hash harus ada di origin/main repo pemilik
-//     setelah git fetch (keputusan 2026-11-08: hash yang tidak ada di GitHub = tidak boleh
-//     dirujuk). Hash lokal-tanpa-origin = GAGAL.
-//  C) tx hash NEAR (base58 43–50, di luar URL, konteks bukan block/code-hash/ed25519) →
-//     wajib bisa di-query (EXPERIMENTAL_tx_status, testnet).
-//  D) akun NEAR (*.testnet / *.near tanpa placeholder) → wajib view_account di RPC yang sesuai.
-//  E) URL http(s) → HTTP check; 401/402/403/429/999 = OK (bot wall); 5xx/jaringan = WARN
-//     (jaringan lokal tidak stabil; --strict-http untuk CI bila diinginkan).
-// Exit 1 bila ada FAIL.
+// check-links.mjs — OPS-115 / DK-085: links & hashes referenced in docs must EXIST.
+// Source: README.md, HACKATHON.md, docs/*.md
+// Checks:
+//  A) paths in `backticks` → try relative-to-file, relative-to-repo-root, relative-to-project-root
+//     (reports/… lives at the project root), then fall back to a basename search. A token without "/"
+//     that is not found = filename mention → WARN (not a failure); a token with "/" that is not found = FAIL.
+//  B) commit hashes in `backticks` (hex 7/40) → search ALL nested repos (umbrella, contracts,
+//     scripts, backend, sdk, oracle-tee, frontend); the hash must be in the owner repo's origin/main
+//     after a git fetch (decision 2026-11-08: a hash that is not on GitHub = must not be
+//     referenced). A local hash without origin = FAIL.
+//  C) NEAR tx hashes (base58 43–50, outside URLs, context not block/code-hash/ed25519) →
+//     must be queryable (EXPERIMENTAL_tx_status, testnet).
+//  D) NEAR accounts (*.testnet / *.near without placeholders) → must pass view_account on the matching RPC.
+//  E) http(s) URLs → HTTP check; 401/402/403/429/999 = OK (bot wall); 5xx/network = WARN
+//     (local network is unstable; --strict-http for CI if desired).
+// Exits 1 on any FAIL.
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const PROJECT_ROOT = resolve(ROOT, "../.."); // NEAR-AI-Hackathon/ (reports/ ada di sini)
+const PROJECT_ROOT = resolve(ROOT, "../.."); // NEAR-AI-Hackathon/ (reports/ lives here)
 const STRICT_HTTP = process.argv.includes("--strict-http");
 const RPC_TESTNET = "https://near-testnet.drpc.org";
 const RPC_MAINNET = "https://rpc.mainnet.near.org";
@@ -40,7 +40,7 @@ const REPOS = [ROOT, "contracts", "scripts", "backend", "sdk", "oracle-tee", "fr
 
 const HEX_DENY = new Set(["ed25519", "deadbeef", "cafebabe"]);
 const ACCOUNT_ALLOW = new Set([
-  "snacc-v001.near", // alamat desain mainnet (belum deploy; keputusan = pemilik)
+  "snacc-v001.near", // mainnet design address (not deployed; decision = owner)
 ]);
 const SKIP_DIRS = new Set(["node_modules", ".git", "target", ".secrets", ".next", "dist", ".github"]);
 
@@ -111,12 +111,12 @@ function resolvePath(tok, baseDir) {
 }
 
 async function main() {
-  // --- siapkan origin/main di semua repo (fetch terbaik) ---
+  // --- prepare origin/main in all repos (best-effort fetch) ---
   let fetchFailed = false;
   for (const repo of REPOS) {
     if (git(repo, ["fetch", "origin", "--quiet"]) === null) fetchFailed = true;
   }
-  if (fetchFailed) warn("git", "sebagian git fetch origin gagal — memakai refs lokal yang ada");
+  if (fetchFailed) warn("git", "some git fetch origin calls failed — using the local refs that exist");
   const repoHasOriginMain = new Map(
     REPOS.map((r) => [r, git(r, ["rev-parse", "--verify", "--quiet", "origin/main"]) !== null]),
   );
@@ -126,19 +126,19 @@ async function main() {
   for (const rel of FILES) {
     const abs = join(ROOT, rel);
     if (!existsSync(abs)) {
-      fail(rel, "file tidak ada");
+      fail(rel, "file does not exist");
       continue;
     }
     stats.files++;
     const raw = readFileSync(abs, "utf8");
-    // URL dulu (sebelum di-strip), agar tetap diperiksa
+    // URLs first (before stripping), so they are still checked
     for (const m of raw.matchAll(/\((https?:\/\/[^)\s]+)\)/g)) {
       urlQueue.push({ url: m[1], from: rel });
     }
-    // buang URL agar hash di dalam URL tidak dianggap tx/hash terpisah
+    // strip URLs so hashes inside URLs are not treated as separate tx/hashes
     const text = raw.replace(/\((https?:\/\/[^)\s]+)\)/g, "(URL)");
 
-    // A) path dalam backtick
+    // A) paths in backticks
     for (const m of text.matchAll(/`([^`\n]+)`/g)) {
       const tok = m[1].trim();
       if (!/^(?:\.\.\/)?[A-Za-z0-9_.\-/]+\.(?:md|json|mjs|js|ts|rs|toml|yml|yaml|svg|wasm|sh)$/.test(tok))
@@ -146,32 +146,32 @@ async function main() {
       if (tok.startsWith("http")) continue;
       stats.paths++;
       if (resolvePath(tok, dirname(abs))) continue;
-      if (tok.includes("/")) fail(rel, `path rujukan tidak ada: \`${tok}\``);
-      else warn(rel, `sebutan filename tidak ditemukan sebagai path: \`${tok}\``);
+      if (tok.includes("/")) fail(rel, `referenced path does not exist: \`${tok}\``);
+      else warn(rel, `filename mention not found as a path: \`${tok}\``);
     }
 
-    // B) hash commit dalam backtick — cari di semua repo
+    // B) commit hashes in backticks — search all repos
     for (const m of text.matchAll(/`([0-9a-f]{7}|[0-9a-f]{40})`/g)) {
       const h = m[1];
       if (HEX_DENY.has(h)) continue;
       stats.commits++;
       const owner = REPOS.find((r) => git(r, ["cat-file", "-e", `${h}^{commit}`]) === "");
       if (!owner) {
-        fail(rel, `hash commit \`${h}\` tidak dikenal di repo mana pun`);
+        fail(rel, `commit hash \`${h}\` is unknown in every repo`);
         continue;
       }
       if (!repoHasOriginMain.get(owner)) {
-        fail(rel, `hash commit \`${h}\`: repo ${owner.replace(ROOT, ".")} tanpa origin/main`);
+        fail(rel, `commit hash \`${h}\`: repo ${owner.replace(ROOT, ".")} has no origin/main`);
         continue;
       }
       const contained = git(owner, ["branch", "-r", "--contains", h]);
       if (contained === null || !contained.split("\n").some((b) => b.trim() === "origin/main")) {
-        const where = owner === ROOT ? "payung" : owner.replace(ROOT + "/", "");
-        fail(rel, `hash commit \`${h}\` ada lokal (${where}) tapi TIDAK di origin/main — tidak bisa dicek publik`);
+        const where = owner === ROOT ? "umbrella" : owner.replace(ROOT + "/", "");
+        fail(rel, `commit hash \`${h}\` exists locally (${where}) but NOT on origin/main — cannot be checked publicly`);
       }
     }
 
-    // C) tx hash NEAR (di luar URL, konteks bersih)
+    // C) NEAR tx hashes (outside URLs, clean context)
     const txHashes = new Set(
       [...text.matchAll(/\b([1-9A-HJ-NP-Za-km-z]{43,50})\b/g)]
         .map((m) => ({ t: m[1], ctx: text.slice(Math.max(0, m.index - 30), m.index + m[1].length + 10) }))
@@ -182,21 +182,21 @@ async function main() {
         .map(({ t }) => t),
     );
 
-    // D) akun NEAR
+    // D) NEAR accounts
     const accounts = new Set(
       [...text.matchAll(/\b([a-z0-9][a-z0-9._-]{0,61}(?:\.testnet|\.near))\b/g)]
         .map((m) => m[1])
         .filter((a) => !a.includes("<") && !ACCOUNT_ALLOW.has(a)),
     );
 
-    // E) URL — sudah dikumpulkan dari `raw` di atas
+    // E) URLs — already collected from `raw` above
 
     for (const tx of txHashes) {
       stats.txs++;
       try {
         const r = await rpc(RPC_TESTNET, "EXPERIMENTAL_tx_status", [tx, "snacc-v001.testnet"]);
         if (!r || r.error || !r.transaction) {
-          fail(rel, `tx hash tidak ditemukan di testnet: ${tx}`);
+          fail(rel, `tx hash not found on testnet: ${tx}`);
         }
       } catch (e) {
         fail(rel, `tx hash ${tx}: RPC error ${String(e.message).slice(0, 80)}`);
@@ -212,9 +212,9 @@ async function main() {
           finality: "final",
           account_id: acct,
         });
-        if (!r || r.error) fail(rel, `akun tidak ditemukan di RPC: ${acct}`);
+        if (!r || r.error) fail(rel, `account not found on RPC: ${acct}`);
       } catch (e) {
-        fail(rel, `akun ${acct}: RPC error ${String(e.message).slice(0, 80)}`);
+        fail(rel, `account ${acct}: RPC error ${String(e.message).slice(0, 80)}`);
       }
     }
   }
@@ -235,22 +235,22 @@ async function main() {
         else warn(from, msg);
       }
     } catch (e) {
-      const msg = `URL ${url} gagal diakses: ${String(e.message).slice(0, 80)}`;
+      const msg = `URL ${url} could not be reached: ${String(e.message).slice(0, 80)}`;
       if (STRICT_HTTP) fail(from, msg);
       else warn(from, msg);
     }
   }
 
   console.log(
-    `check-links: ${stats.files} file · ${stats.paths} path · ${stats.commits} hash commit · ` +
-      `${stats.txs} tx · ${stats.accounts} akun · ${stats.urls} URL · ${REPOS.length} repo`,
+    `check-links: ${stats.files} files · ${stats.paths} paths · ${stats.commits} commit hashes · ` +
+      `${stats.txs} txs · ${stats.accounts} accounts · ${stats.urls} URLs · ${REPOS.length} repos`,
   );
   for (const w of warns) console.log(`  WARN  ${w}`);
   if (fails.length === 0) {
-    console.log("check-links OK — 0 gagal");
+    console.log("check-links OK — 0 failures");
     process.exit(0);
   }
-  console.log(`check-links GAGAL — ${fails.length} temuan:`);
+  console.log(`check-links FAILED — ${fails.length} findings:`);
   for (const f of fails) console.log(`  FAIL  ${f}`);
   process.exit(1);
 }

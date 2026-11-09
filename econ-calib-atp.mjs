@@ -1,23 +1,23 @@
 #!/usr/bin/env node
 /**
- * econ-calib-atp.mjs — ECON-117 varian ATP (keputusan pemilik 2026-11-08:
- * suhu literal ATP): sweep `ATP_VOLUME_SCALE` (sim-units, 1 ATP/tx) pada
- * konfigurasi final ECON-111 Opsi B (legs, VOLUME_SCALE 5, Fever 610).
- * Output: `reports/econ-report-4.md` (angka dari kode, jujur).
- * Jalankan: node econ-calib-atp.mjs
+ * econ-calib-atp.mjs — ECON-117 ATP variant (owner decision 2026-11-08:
+ * literal ATP temperature): sweeps `ATP_VOLUME_SCALE` (sim-units, 1 ATP/tx) on the
+ * final ECON-111 Option B configuration (legs, VOLUME_SCALE 5, Fever 610).
+ * Output: `reports/econ-report-4.md` (numbers from code, honest).
+ * Run: node econ-calib-atp.mjs
  */
 import { writeFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { runSimulation, assertFinite, SEED, EPOCHS, ASUMSI } from "./econ-sim.mjs";
+import { runSimulation, assertFinite, SEED, EPOCHS, ASSUMPTIONS } from "./econ-sim.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(HERE, "../../../reports/econ-report-4.md");
 
 const SCALES = [0, 500, 1000, 1500, 2000, 3000, 5000, 7500, 10000, 15000];
 
-// Band target (sama dengan ECON-111): Fever 5–30%, populasi tidak runtuh,
-// treasury solvent, tanpa death spiral.
+// Target band (same as ECON-111): Fever 5–30%, population does not collapse,
+// treasury solvent, no death spiral.
 function meetsBand(r) {
   return (
     r.feverPct >= 5 && r.feverPct <= 30 &&
@@ -29,7 +29,7 @@ function meetsBand(r) {
 const rows = [];
 for (const S of SCALES) {
   const r = runSimulation({
-    label: `atp-varian S=${S}`,
+    label: `atp-variant S=${S}`,
     volumeModel: "legs",
     volumeScale: 5,
     feverThreshold: 610,
@@ -39,9 +39,9 @@ for (const S of SCALES) {
   rows.push({ S, r, inBand: meetsBand(r) });
 }
 
-// Freeze falsifikasi pada kandidat terpilih (S=3000).
+// Freeze falsification on the selected candidate (S=3000).
 const freezeR = runSimulation({
-  label: "atp-varian S=3000 freeze",
+  label: "atp-variant S=3000 freeze",
   volumeModel: "legs",
   volumeScale: 5,
   feverThreshold: 610,
@@ -50,74 +50,74 @@ const freezeR = runSimulation({
 });
 assertFinite({ fever: freezeR.feverPct, alive: freezeR.aliveFinal, tmin: freezeR.treasuryMin === Infinity ? 0 : freezeR.treasuryMin });
 
-const fmt = (x) => Math.round(x).toLocaleString("id-ID");
+const fmt = (x) => Math.round(x).toLocaleString("en-US");
 const pct = (x) => x.toFixed(1);
 const tableRows = rows
   .map(({ S, r, inBand }) =>
-    `| ${S} | ${pct(r.feverPct)}% | ${pct(r.hypoPct)}% | ${pct(r.normalPct)}% | ${r.aliveFinal} | ${fmt(r.medianBalance)} | ${fmt(r.supplyFinal)} | ${fmt(r.treasuryMin)} | ${fmt(r.totalBurned)} | ${fmt(r.totalRebate)} | ${r.treasuryEverNegative ? "NEGATIF" : "solvent"} | ${inBand ? "✅" : "—"} |`,
+    `| ${S} | ${pct(r.feverPct)}% | ${pct(r.hypoPct)}% | ${pct(r.normalPct)}% | ${r.aliveFinal} | ${fmt(r.medianBalance)} | ${fmt(r.supplyFinal)} | ${fmt(r.treasuryMin)} | ${fmt(r.totalBurned)} | ${fmt(r.totalRebate)} | ${r.treasuryEverNegative ? "NEGATIVE" : "solvent"} | ${inBand ? "✅" : "—"} |`,
   )
   .join("\n");
 
 const pick = rows.find(({ S }) => S === 3000);
-const shareSim = (3000 / (5100 + 3000)).toFixed(3); // 0,370
-const shareContract = "0,375"; // 6e14/(10^15+6e14) = 0,375
+const shareSim = (3000 / (5100 + 3000)).toFixed(3); // 0.370
+const shareContract = "0.375"; // 6e14/(10^15+6e14) = 0.375
 
-const md = `# ECON-117 varian ATP — Sweep Kalibrasi \`ATP_VOLUME_SCALE\` (seed ${SEED})
+const md = `# ECON-117 ATP variant — \`ATP_VOLUME_SCALE\` Calibration Sweep (seed ${SEED})
 
-Keputusan pemilik 2026-11-08 (pilihan "paling seru"): **suhu literal ATP** —
-\`V_epoch = kaki ekonomi (K1–K4) + atp_minted × ATP_VOLUME_SCALE\`. Sim memodelkan
-**1 ATP per tx** (abstraksi feed; kontrak: \`atp = effective_fee / 10^15\` — progresif
-terhadap ukuran feed). Sweep ${SCALES.length} nilai × ${EPOCHS} epoch, seed ${SEED}.
+Owner decision 2026-11-08 ("most fun" option): **literal ATP temperature** —
+\`V_epoch = economic legs (K1–K4) + atp_minted × ATP_VOLUME_SCALE\`. The sim models
+**1 ATP per tx** (feed abstraction; contract: \`atp = effective_fee / 10^15\` — progressive
+in feed size). Sweep of ${SCALES.length} values × ${EPOCHS} epochs, seed ${SEED}.
 
-## Tabel sweep
+## Sweep table
 
-| ATP_VOLUME_SCALE (sim) | Fever | Hypo | Normal | Populasi akhir | Median saldo | Supply akhir | Treasury min | Total burn | Total rebate | Treasury | Band? |
+| ATP_VOLUME_SCALE (sim) | Fever | Hypo | Normal | Final population | Median balance | Final supply | Treasury min | Total burn | Total rebate | Treasury | Band? |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 ${tableRows}
 
-**Kriteria band**: Fever 5–30% · populasi ≥ 50 & median saldo > 0 · treasury solvent ·
-tanpa death spiral. Semua nilai dari kode (\`runSimulation\`), bukan diketik.
+**Band criteria**: Fever 5–30% · population ≥ 50 & median balance > 0 · treasury solvent ·
+no death spiral. All values come from code (\`runSimulation\`), not typed by hand.
 
-## Hasil & pilihan
+## Result & choice
 
-- **Semua skala lulus band inti**: fever naik monoton 5,9%→23,8% seiring S; populasi menurun
-  bertahap 95→40; **tanpa death spiral di semua skala**; treasury solvent semua.
-- Berbeda dengan kalibrasi molekul-lama (econ-report-3: fever & populasi saling
-  menekan hingga band tak tercapai), **varian ATP menemukan titik operasi sehat**:
-  ATP menambah bobot suhu **tanpa** menaikkan legs molekul — fever bisa dinaikkan
-  pada populasi yang tetap terjaga.
-- **Pilihan: \`ATP_VOLUME_SCALE\` sim = 3000** — fever **8,5%** (tengah band 5–30%),
-  populasi 73, supply −17,7% (deflasi sehat), treasury solvent, burn 177.447.
+- **All scales pass the core band**: fever rises monotonically 5.9%→23.8% with S; population declines
+  gradually 95→40; **no death spiral at any scale**; treasury solvent everywhere.
+- Unlike the old molecule-based calibration (econ-report-3: fever & population pressed
+  each other until the band could not be reached), **the ATP variant finds a healthy operating point**:
+  ATP adds temperature weight **without** raising the molecule legs — fever can be raised
+  while the population stays intact.
+- **Choice: \`ATP_VOLUME_SCALE\` sim = 3000** — fever **8.5%** (middle of the 5–30% band),
+  population 73, supply −17.7% (healthy deflation), treasury solvent, burn 177,447.
 
-## Pemetaan ke kontrak
+## Mapping to the contract
 
-- Sim: porsi ATP dari per-tx volume = \`S_sim / (5100 + S_sim)\` = **0,370** (5100 = kaki
-  ekonomi per-tx: fee 100 + molekul 5000).
-- Kontrak: porsi ATP dari feed = \`S_c / (10^15 + S_c)\` (\`atp = effective_fee / 10^15\`
-  — invarian terhadap ukuran feed); set share sama → **\`S_c = 6×10^14\`**
-  (6×10^14/(10^15+6×10^14) = 0,375 ≈ 0,370 ✓).
-- Kontrak terpasang: \`ATP_VOLUME_SCALE = 600_000_000_000_000\` (state.rs).
+- Sim: ATP share of per-tx volume = \`S_sim / (5100 + S_sim)\` = **0.370** (5100 = per-tx economic
+  legs: fee 100 + molecules 5000).
+- Contract: ATP share of a feed = \`S_c / (10^15 + S_c)\` (\`atp = effective_fee / 10^15\`
+  — invariant in feed size); same share → **\`S_c = 6×10^14\`**
+  (6×10^14/(10^15+6×10^14) = 0.375 ≈ 0.370 ✓).
+- Contract as deployed: \`ATP_VOLUME_SCALE = 600_000_000_000_000\` (state.rs).
 
-## Falsifikasi freeze (epoch 3000–3500 sepi total, S=3000)
+## Freeze falsification (epochs 3000–3500 fully quiet, S=3000)
 
-- Fever ${pct(freezeR.feverPct)}% · Hypo ${pct(freezeR.hypoPct)}% · populasi ${freezeR.aliveFinal}
-  (runway BMR habis — konsisten temuan econ-report-1: kematian massal = sifat BMR,
-  bukan kegagalan termostat) · treasury min ${fmt(freezeR.treasuryMin)} · death spiral: ${freezeR.deathSpiral ? "YA" : "TIDAK"}.
+- Fever ${pct(freezeR.feverPct)}% · Hypo ${pct(freezeR.hypoPct)}% · population ${freezeR.aliveFinal}
+  (BMR runway exhausted — consistent with the econ-report-1 finding: mass death = a property of BMR,
+  not a thermostat failure) · treasury min ${fmt(freezeR.treasuryMin)} · death spiral: ${freezeR.deathSpiral ? "YES" : "NO"}.
 
-## Catatan jujur
+## Honest notes
 
-1. **Populasi menurun seiring S** (95→40): fever lebih sering → rebate hypo lebih jarang →
-   saldo strain menipis. Band tetap terjaga (pop ≥ 40 di S=15000; ≥ 73 di S pilihan) —
-   tapi tren turun adalah trade-off desain yang diakui.
-2. **Sim 1 ATP/tx** adalah abstraksi; kontrak: ATP progresif terhadap feed
-   (\`fee/10^15 × eff × mito\`) — feed besar → kontribusi suhu besar (sejalan "ATP sebagai
-   pembilang utama").
-3. \`S=0\` (ATP dimatikan) = perilaku kontrak sebelum keputusan ini: fever 5,9%, pop 95 —
-   tetap in-band; varian ATP menambah **sensitivitas suhu terhadap aktivitas makan**.
+1. **Population declines as S grows** (95→40): fever occurs more often → hypo rebates occur less often →
+   strain balances thin out. The band is still held (pop ≥ 40 at S=15000; ≥ 73 at the chosen S) —
+   but the downward trend is an acknowledged design trade-off.
+2. **Sim 1 ATP/tx** is an abstraction; contract: ATP is progressive in the feed
+   (\`fee/10^15 × eff × mito\`) — a big feed → a big temperature contribution (in line with "ATP as
+   the main numerator").
+3. \`S=0\` (ATP switched off) = the contract behavior before this decision: fever 5.9%, pop 95 —
+   still in-band; the ATP variant adds **temperature sensitivity to feeding activity**.
 
-$SNACC testnet tanpa nilai uang.
+$SNACC testnet has no monetary value.
 `;
 
 await writeFile(OUT, md, "utf8");
 console.log(md);
-console.error(`OK — ditulis ke ${OUT}`);
+console.error(`OK — written to ${OUT}`);
