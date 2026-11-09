@@ -100,15 +100,15 @@ async function main() {
     out,
     JSON.stringify(
       {
-        waktu: new Date().toISOString(),
+        time: new Date().toISOString(),
         buyer: buyer.account_id,
-        akun_baru: implicitId,
-        public_key_baru: pkNew,
+        new_account: implicitId,
+        new_public_key: pkNew,
         fkey_public: fkey.getPublicKey().toString(),
         allowance: ALLOWANCE,
         method_names: METHODS,
         receiver: CONTRACT,
-        verifikasi_chain: { ok, permission: perm },
+        chain_verification: { ok, permission: perm },
         tx: {
           create: resCreate.transaction_outcome.id,
           add_key: resAdd.transaction_outcome.id,
