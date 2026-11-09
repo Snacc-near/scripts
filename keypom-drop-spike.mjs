@@ -55,7 +55,7 @@ try {
     fs.writeFileSync(
       out,
       JSON.stringify(
-        { waktu: new Date().toISOString(), funder: BUYER.account_id, drop_id: id ?? null, drop_key: dropPk, tx: res.transaction_outcome.id, note: "testnet demo drop via direct call to v2.keypom.testnet" },
+        { time: new Date().toISOString(), funder: BUYER.account_id, drop_id: id ?? null, drop_key: dropPk, tx: res.transaction_outcome.id, note: "testnet demo drop via direct call to v2.keypom.testnet" },
         null,
         2,
       ),

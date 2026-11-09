@@ -202,7 +202,7 @@
       "kpi": "G-09",
       "txHash": "jXccXny8Jp1z7hT1Pzj5nDYEAC5M2Cjrdrs3oiXeewn",
       "signer": "snacc-v001.testnet",
-      "note": "divide_strain (anak = strain 6)"
+      "note": "divide_strain (child = strain 6)"
     },
     {
       "kpi": "G-06",
