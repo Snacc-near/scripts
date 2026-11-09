@@ -73,15 +73,15 @@
       "note": "feed strain 2 (5e22)"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
-      "note": "get_global_solvency pasca-feed: {\"total_minted\":1.65e+24,\"total_burned\":0,\"sum_account_balances\":0,\"sum_strain_snacc\":1.318922e+24,\"sum_treasury\":3.30528e+23,\"sum_dividend_pool\":0,\"epoch_dividend_inflow\":550000000000000000000,\"sum_npc_reserve\":0,\"total"
+      "note": "get_global_solvency post-feed: {\"total_minted\":1.65e+24,\"total_burned\":0,\"sum_account_balances\":0,\"sum_strain_snacc\":1.318922e+24,\"sum_treasury\":3.30528e+23,\"sum_dividend_pool\":0,\"epoch_dividend_inflow\":550000000000000000000,\"sum_npc_reserve\":0,\"total"
     },
     {
       "kpi": "PREP",
       "txHash": "CJUpNqqX4fsSsgHi1d7fkcucHEn7Xx6YawWtgNH5CFTY",
       "signer": "snacc-v001.testnet",
-      "note": "allocate_atp (1/1/1 — efek organel EN-119, biaya 3 ATP)"
+      "note": "allocate_atp (1/1/1 — organelle effects EN-119, cost 3 ATP)"
     },
     {
       "kpi": "G-06",
@@ -129,31 +129,31 @@
       "kpi": "G-04",
       "txHash": "5drdLCgcPCqhRsXWBX9gsQXjLm6CRarsfsVgXkJMrwb6",
       "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (ignis→amalgam, iterasi 1)"
+      "note": "transmute recipe1 (ignis→amalgam, iteration 1)"
     },
     {
       "kpi": "G-04",
       "txHash": "2Bfrwskc8UU8vh776u9ATWCDCN1ngBgWF9nyPsDGWfrg",
       "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (ignis→amalgam, iterasi 2)"
+      "note": "transmute recipe1 (ignis→amalgam, iteration 2)"
     },
     {
       "kpi": "G-04",
       "txHash": "6NP2AqrM5MW9sCkEZpKpNn8xoDCDKMbiz5cUCshMFWX4",
       "signer": "snacc-v001.testnet",
-      "note": "transmute resep1 (ignis→amalgam, iterasi 3)"
+      "note": "transmute recipe1 (ignis→amalgam, iteration 3)"
     },
     {
       "kpi": "G-04",
       "txHash": "5etxDL5E1pxypFxCCT9cqai5TV3MkugjgEsfZwJo5WKz",
       "signer": "snacc-v001.testnet",
-      "note": "transmute habiskan ignis (24)"
+      "note": "transmute use up ignis (24)"
     },
     {
       "kpi": "G-04",
       "txHash": "5mEG1NNZxasUTDjbNA17LZVRUyXTH1gVJFJrNTJUpL9V",
       "signer": "snacc-v001.testnet",
-      "note": "transmute resep2 (ignis+lumin→redactase)"
+      "note": "transmute recipe2 (ignis+lumin→redactase)"
     },
     {
       "kpi": "G-04",
@@ -162,27 +162,27 @@
       "note": "synthesize elixir-homeostasis (amalgam+redactase)"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
       "note": "get_inventory mt:spore-ignis (strain 1): \"0\""
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
       "note": "get_inventory mt:spore-lumin (strain 1): \"0\""
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
       "note": "get_inventory mt:enzyme-amalgam (strain 1): \"35\""
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
       "note": "get_inventory mt:enzyme-redactase (strain 1): \"1\""
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
       "note": "get_inventory mt:elixir-homeostasis (strain 1): \"1\""
     },
@@ -208,13 +208,13 @@
       "kpi": "G-06",
       "txHash": "Bo5WwpjnicshMczvrYpajxFTN9Kk4x9mEpcHPJLBfBpn",
       "signer": "snacc-v001.testnet",
-      "note": "splice (5 absorbs 1 — role E|F|S + inventori menyatu)"
+      "note": "splice (5 absorbs 1 — role E|F|S + inventories merged)"
     },
     {
       "kpi": "G-04",
       "txHash": "BeMdYbCowF3LqL7QX6CLx42TryoLcRVoLzzRXDCYte8c",
       "signer": "snacc-v001.testnet",
-      "note": "transmute habiskan ignis (strain 5)"
+      "note": "transmute use up ignis (strain 5)"
     },
     {
       "kpi": "G-04",
@@ -226,7 +226,7 @@
       "kpi": "G-04",
       "txHash": "EVUEp26UJuPirGPznM6tQ1zNFAY69G43fDPBcwonRzVw",
       "signer": "snacc-v001.testnet",
-      "note": "extract cryo ke-2 (strain 5)"
+      "note": "extract cryo #2 (strain 5)"
     },
     {
       "kpi": "G-04",
@@ -238,31 +238,31 @@
       "kpi": "G-04",
       "txHash": "AWdh3Wuhkr7E5PRyi1rw7Bg7FFyYcydt2CAPx39Yzd57",
       "signer": "snacc-v001.testnet",
-      "note": "synthesize ELIXIR-AETHER (strain 5, bertrait TEE)"
+      "note": "synthesize ELIXIR-AETHER (strain 5, TEE-trait)"
     },
     {
       "kpi": "G-11",
       "txHash": "7LEVs6SPwHtZahMufPBvStFigKRTnGnWxC8NiXmxJKET",
       "signer": "snacc-v001.testnet",
-      "note": "synthesize_and_redeem_aether (kontribusi dividen epoch 0)"
+      "note": "synthesize_and_redeem_aether (epoch 0 dividend contribution)"
     },
     {
       "kpi": "PREP",
       "txHash": "BpyUPKmiYDy6SboVkkLrM2yEamAE8McCH3fmGAwk7Jqo",
       "signer": "snacc-v001.testnet",
-      "note": "incubate Fermenter kecil (strain 7 — target hostile)"
+      "note": "incubate small Fermenter (strain 7 — hostile target)"
     },
     {
       "kpi": "PREP",
       "txHash": "5ruZA8fmhQNANSnsaG4JYCyvXtiGFwx3UMc3WSgLx9V4",
       "signer": "snacc-v001.testnet",
-      "note": "incubate Extractor (strain 8 — pengadopsi)"
+      "note": "incubate Extractor (strain 8 — adopter)"
     },
     {
       "kpi": "PREP",
       "txHash": "4Te5yAJoPJpkfNYidNqd1wmp19BYgwaz2saWD721xJGt",
       "signer": "x207-demo-buyer.testnet",
-      "note": "incubate Fermenter kecil milik buyer (strain 9 — target adopt/lisis)"
+      "note": "incubate small Fermenter owned by buyer (strain 9 — adopt/lysis target)"
     },
     {
       "kpi": "G-21",
@@ -271,9 +271,9 @@
       "note": "materialize_subaccount (strain 5, deposit 20 mN)"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
-      "note": "vault s-5-276801280.snacc-v001.testnet ADA on-chain (amount=20000000000000000000000)"
+      "note": "vault s-5-276801280.snacc-v001.testnet EXISTS on-chain (amount=20000000000000000000000)"
     },
     {
       "kpi": "G-22",
@@ -314,15 +314,15 @@
       "note": "advance_sandbox_clock(24)"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
-      "note": "get_sandbox_clock setelah +24 jam: [true,86400,1794242935]"
+      "note": "get_sandbox_clock after +24 hours: [true,86400,1794242935]"
     },
     {
       "kpi": "G-19",
       "txHash": "B9f8aEBEUW6TZZ8s8zPpB11MFum7L7yPrvXxYVDFADxE",
       "signer": "snacc-v001.testnet",
-      "note": "advance_epoch (tutup epoch 0)"
+      "note": "advance_epoch (close epoch 0)"
     },
     {
       "kpi": "G-11",
@@ -334,12 +334,12 @@
       "kpi": "PREP",
       "txHash": "CTxwJMyp8RaHwCtw8uRoY581hhSm2HW75DLMdb7n4xL",
       "signer": "snacc-v001.testnet",
-      "note": "feed strain 5 (pemelihara; 1e23)"
+      "note": "feed strain 5 (caretaker; 1e23)"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
-      "note": "get_global_solvency FASE-1: {\"total_minted\":2.25e+24,\"total_burned\":1000000000000000,\"sum_account_balances\":0,\"sum_strain_snacc\":1.7782330576978026e+24,\"sum_treasury\":4.715716664181975e+23,\"sum_dividend_pool\":0,\"epoch_dividend_inflow\":1952750000000"
+      "note": "get_global_solvency PHASE-1: {\"total_minted\":2.25e+24,\"total_burned\":1000000000000000,\"sum_account_balances\":0,\"sum_strain_snacc\":1.7782330576978026e+24,\"sum_treasury\":4.715716664181975e+23,\"sum_dividend_pool\":0,\"epoch_dividend_inflow\":1952750000000"
     },
     {
       "kpi": "PREP",
@@ -384,57 +384,57 @@
       "note": "gladi-retry harvest_starving_strain 2026-11-08T16:52Z"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
       "note": "get_sandbox_clock FINALE: [true,255600,1794412357]"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
-      "note": "get_macro_state sebelum burst/rebate (zona + burst + kuota I-04): {\"current_epoch\":1,\"epoch_ends_sec\":1794329338,\"last_update_ms\":1794242944959,\"volume_epoch\":4.2440532515999994e+22,\"total_snacc_supply\":2.249999999e+24,\"total_snacc_burned\":1000000000000000,\"epoch_treasury_spent\":781100"
+      "note": "get_macro_state before burst/rebate (zone + burst + I-04 quota): {\"current_epoch\":1,\"epoch_ends_sec\":1794329338,\"last_update_ms\":1794242944959,\"volume_epoch\":4.2440532515999994e+22,\"total_snacc_supply\":2.249999999e+24,\"total_snacc_burned\":1000000000000000,\"epoch_treasury_spent\":781100"
     },
     {
       "kpi": "G-18",
       "txHash": "9YhVkEXJS26jFS5MSpygTURxfDPsZ7i4gQ57ZmLi4b4d",
       "signer": "snacc-v001.testnet",
-      "note": "feed strain 5 (Hypothermia temp=18 + Nutrient Burst aktif)"
+      "note": "feed strain 5 (Hypothermia temp=18 + Nutrient Burst active)"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
-      "note": "BURST+REBATE: burst_bps=360 (burst_until=2, epoch=1) · epoch_treasury_spent 7811000000000000000 → 1.2632431329313775e+21 · zona Hypothermia → Hypothermia"
+      "note": "BURST+REBATE: burst_bps=360 (burst_until=2, epoch=1) · epoch_treasury_spent 7811000000000000000 → 1.2632431329313775e+21 · zone Hypothermia → Hypothermia"
     },
     {
       "kpi": "G-12",
       "txHash": "9CEyL2r8mPArzrwjtiQoeejNGSTcDhdR7oLLnijyPUP1",
       "signer": "snacc-v001.testnet",
-      "note": "extract_spores(5, ignis, fee 1912499999150000000000000 — Hypothermia→Fever, pecah dormansi EN-108)"
+      "note": "extract_spores(5, ignis, fee 1912499999150000000000000 — Hypothermia→Fever, breaks dormancy EN-108)"
     },
     {
       "kpi": "G-12",
       "txHash": "8dFdgEN8K8ZjEUs64YTBvXL1h3Kz3jcAkPFu6fR34Lqp",
       "signer": "snacc-v001.testnet",
-      "note": "feed_strain(5) — fee penuh pasca-non-dormansi, jejak ATP"
+      "note": "feed_strain(5) — full fee after leaving dormancy, ATP trace"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
-      "note": "G-12 FINALE: temp=1040 mK, V_epoch=2.30327103716559e+24, supply=2.214131454347447e+24, burned=3.586854565255287e+22, zona=Fever"
+      "note": "G-12 FINALE: temp=1040 mK, V_epoch=2.30327103716559e+24, supply=2.214131454347447e+24, burned=3.586854565255287e+22, zone=Fever"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
       "note": "get_global_solvency FINAL: {\"total_minted\":2.25e+24,\"total_burned\":3.586854565255287e+22,\"sum_account_balances\":8.77e+22,\"sum_strain_snacc\":1.453585759331144e+24,\"sum_treasury\":1.5468833267837847e+24,\"sum_dividend_pool\":0,\"epoch_dividend_inflow\":1"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
       "note": "get_macro_state FINAL (lyses/mergers/births/divides): {\"current_epoch\":1,\"epoch_ends_sec\":1794329338,\"last_update_ms\":1794412369964,\"volume_epoch\":2.30327103716559e+24,\"total_snacc_supply\":2.214131454347447e+24,\"total_snacc_burned\":3.586854565255287e+22,\"epoch_treasury_spen"
     },
     {
-      "kpi": "BUKTI",
+      "kpi": "EVIDENCE",
       "txHash": null,
-      "note": "OWNER-ONLY LIVE (x207-demo-buyer.testnet, non-owner; tx gagal tercatat on-chain): migrate 3Trbjusq94aiFQXpP7Sv3ummy2vAyrFW7qjwj6FJQdmk -> 'Method migrate is private'; advance_sandbox_clock 77YcFQpLLVoht4Nck6Dmt1LHGkDVe6AzaGtufak8zDc7 -> ERR_NOT_CONTRACT_OWNER; register_attested_signer BPxS8CoT7cetk1LVAeUYFq2UZDoq4zspRvjSFiBEPphj -> ERR_NOT_CONTRACT_OWNER; extract_spores(strain 5) Dpqj2JWWheYTdE1xSwgkrdAjjftRPHQXi3n6JxWVdcMV -> ERR_NOT_STRAIN_OWNER"
+      "note": "OWNER-ONLY LIVE (x207-demo-buyer.testnet, non-owner; failed txs recorded on-chain): migrate 3Trbjusq94aiFQXpP7Sv3ummy2vAyrFW7qjwj6FJQdmk -> 'Method migrate is private'; advance_sandbox_clock 77YcFQpLLVoht4Nck6Dmt1LHGkDVe6AzaGtufak8zDc7 -> ERR_NOT_CONTRACT_OWNER; register_attested_signer BPxS8CoT7cetk1LVAeUYFq2UZDoq4zspRvjSFiBEPphj -> ERR_NOT_CONTRACT_OWNER; extract_spores(strain 5) Dpqj2JWWheYTdE1xSwgkrdAjjftRPHQXi3n6JxWVdcMV -> ERR_NOT_STRAIN_OWNER"
     }
   ],
   "solvency_final": {

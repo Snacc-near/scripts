@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// check-claims.mjs — OPS-115 / DK-085: deteksi overclaim & kata terlarang di dokumen publik.
-// Pindai: README.md, HACKATHON.md, docs/*.md
-// Dua pemeriksaan:
-//  1) KATA TERLARANG: gamefi / investasi / investment / yield / kasino (case-insensitive).
-//     Baris aturan (aturan kejujuran itu sendiri) dikecualikan — lihat RULE_KEYS + lookback 1 baris.
-//  2) KLAIM "ready/live" tanpa bukti: frasa kuat berikut wajib disertai penanda bukti
-//     (evidence/, verify:thesis, LOLOS, tx hash, hash commit, "hash", "dari bukti").
-// Exit 1 bila ada temuan. Dipakai di CI (lihat .github/workflows/ci.yml).
+// check-claims.mjs — OPS-115 / DK-085: detect overclaims and forbidden words in public docs.
+// Scans: README.md, HACKATHON.md, docs/*.md
+// Two checks:
+//  1) FORBIDDEN WORDS: gamefi / investing / investment / yield / casino (case-insensitive).
+//     Rule lines (the honesty rule itself) are excluded — see RULE_KEYS + 1-line lookback.
+//  2) "ready/live" CLAIMS without evidence: the strong phrases below must carry an evidence marker
+//     (evidence/, verify:thesis, LOLOS, tx hash, commit hash, "hash", "from evidence").
+// Exits 1 on any finding. Used in CI (see .github/workflows/ci.yml).
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,29 +21,29 @@ const FILES = [
     .map((f) => join("docs", f)),
 ];
 
-const BANNED = ["gamefi", "investasi", "investment", "yield", "kasino"];
+const BANNED = ["gamefi", "investing", "investment", "yield", "casino"];
 
-// Kata kunci yang menandai baris = mengutip/menjelaskan ATURAN (bukan klaim). Dipakai di baris ini
-// atau baris sebelumnya (untuk blok aturan multi-baris).
+// Keywords that mark a line as quoting/explaining the RULE (not a claim). Applied to this line
+// or the previous one (for multi-line rule blocks).
 const RULE_KEYS =
-  /dilarang|tanpa kata|banned|wording|honesty rules|aturan kejujuran|ganti\b|catatan sinkron|framing\s*$/i;
+  /forbidden|prohibited|without the words?|banned|wording|honesty rules?|rule of honesty|replace\b|sync note|framing\s*$/i;
 
-// Frasa klaim kuat yang butuh bukti pada baris yang sama.
+// Strong claim phrases that need evidence on the same line.
 const CLAIM_PATTERNS = [
   /submission\s*\(\s*ready\s*\)/i,
   /submission\s+ready/i,
   /ready\s+to\s+submit/i,
   /fully\s+(ready|live|complete|done)/i,
   /is\s+live\s+now/i,
-  /sudah\s+(live|siap\s+submit)/i,
-  /100\s*%\s*(complete|done|tested|lulus)/i,
-  /all\s+(tests?|checks?)\s+(pass|green|lulus)/i,
+  /already\s+(live|ready\s+to\s+submit)/i,
+  /100\s*%\s*(complete|done|tested|passed?)/i,
+  /all\s+(tests?|checks?)\s+(pass|passed|green)/i,
   /no\s+(known\s+)?(bugs?|failures?)\b/i,
 ];
 
-// Penanda bukti yang membebaskan baris dari temuan klaim.
+// Evidence markers that exempt a line from claim findings.
 const EVIDENCE_KEYS =
-  /evidence\/|verify:thesis|demo:replay|LOLOS|PASS\b|BELUM|\btx\b|hash|dari bukti|point-in-time|spot-check/i;
+  /evidence\/|verify:thesis|demo:replay|LOLOS|PASSED|PASS\b|NOT YET|\btx\b|hash|from evidence|point-in-time|spot-check/i;
 
 const findings = [];
 
@@ -65,7 +65,7 @@ for (const rel of FILES) {
     const prev = i > 0 ? lines[i - 1] : "";
     const lower = line.toLowerCase();
 
-    // 1) kata terlarang
+    // 1) forbidden words
     for (const w of BANNED) {
       if (lower.includes(w) && !ruleish(line, prev)) {
         findings.push({
@@ -77,7 +77,7 @@ for (const rel of FILES) {
       }
     }
 
-    // 2) klaim ready/live tanpa bukti
+    // 2) ready/live claim without evidence
     for (const re of CLAIM_PATTERNS) {
       if (re.test(line) && !hasEvidence(line) && !ruleish(line, prev)) {
         findings.push({
@@ -92,10 +92,10 @@ for (const rel of FILES) {
 }
 
 if (findings.length === 0) {
-  console.log(`check:claims OK — ${FILES.length} file dipindai, 0 temuan`);
+  console.log(`check:claims OK — ${FILES.length} files scanned, 0 findings`);
   process.exit(0);
 }
-console.log(`check:claims GAGAL — ${findings.length} temuan:\n`);
+console.log(`check:claims FAILED — ${findings.length} findings:\n`);
 for (const f of findings) {
   console.log(`  [${f.kind}] ${f.file}:${f.line}`);
   console.log(`      ${f.detail}`);

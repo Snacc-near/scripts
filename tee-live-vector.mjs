@@ -1,17 +1,17 @@
 #!/usr/bin/env node
-// tee-live-vector.mjs — hasilkan vektor TEE SEGAR dari NEAR AI Cloud (untuk gladi G-05).
-//   NEAR_AI_API_KEY=<terisi> node scripts/tee-live-vector.mjs
-// Kunci dibaca dari env `NEAR_AI_API_KEY` (isi di `.env` root proyek — JANGAN dikirim di chat).
-// Alur (oracle-tee S2.6): POST /v1/chat/completions (temperature 0) → GET /v1/signature/{chat_id}
-// → verifikasi ed25519 lokal → cetak vektor untuk `commit_genome_experiment` +
-// `apply_tee_mutation_zero_trust` (raw_response_body = body mentah, WAJIB utuh).
+// tee-live-vector.mjs — produce a FRESH TEE vector from NEAR AI Cloud (for gladi G-05).
+//   NEAR_AI_API_KEY=<set> node scripts/tee-live-vector.mjs
+// The key is read from env `NEAR_AI_API_KEY` (put it in the project-root `.env` — NEVER send it in chat).
+// Flow (oracle-tee S2.6): POST /v1/chat/completions (temperature 0) → GET /v1/signature/{chat_id}
+// → local ed25519 verification → print the vector for `commit_genome_experiment` +
+// `apply_tee_mutation_zero_trust` (raw_response_body = raw body, MUST be kept intact).
 import { createHash } from "node:crypto";
 import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-// Muat .env root proyek bila env kosong (tanpa dependensi).
+// Load the project-root .env when the env var is empty (no dependencies).
 if (!process.env.NEAR_AI_API_KEY) {
   const envPath = resolve(here, "../../../.env");
   if (existsSync(envPath)) {
@@ -23,14 +23,14 @@ if (!process.env.NEAR_AI_API_KEY) {
 }
 const apiKey = process.env.NEAR_AI_API_KEY;
 if (!apiKey) {
-  console.error("❌ NEAR_AI_API_KEY belum ada. Taruh di .env root proyek: NEAR_AI_API_KEY=... (jangan kirim di chat).");
+  console.error("❌ NEAR_AI_API_KEY is missing. Put it in the project-root .env: NEAR_AI_API_KEY=... (do not send it in chat).");
   process.exit(3);
 }
 
 const MODEL = "z-ai/glm-5.3-flash";
 const REQ_BODY = JSON.stringify({
   model: MODEL, temperature: 0,
-  messages: [{ role: "user", content: "Kembalikan PERSIS teks berikut sebagai satu-satunya isi balasan, tanpa markdown, tanpa penjelasan, tanpa teks lain: {\"strain_id\":4,\"efficiency_shift_bps\":450,\"vitality_bonus\":200,\"phenotype_trait\":\"mitokondria-empyrean\"}" }],
+  messages: [{ role: "user", content: "Return EXACTLY the following text as the only content of your reply, without markdown, without explanation, without any other text: {\"strain_id\":4,\"efficiency_shift_bps\":450,\"vitality_bonus\":200,\"phenotype_trait\":\"mitokondria-empyrean\"}" }],
 });
 const reqSha = createHash("sha256").update(REQ_BODY).digest("hex");
 
@@ -53,7 +53,7 @@ const signatureHex = sigJson.signature ?? sigJson.signature_hex;
 const pubkeyHex = sigJson.signing_address ?? sigJson.signing_address_ed25519;
 const signedText = `${MODEL}:${reqSha}:${resSha}`;
 if (typeof sigJson.text === "string" && sigJson.text !== signedText) {
-  console.error("ERR_TEE_SIGNED_TEXT_MISMATCH — teks server ≠ rekonstruksi lokal."); process.exit(1);
+  console.error("ERR_TEE_SIGNED_TEXT_MISMATCH — server text ≠ local reconstruction."); process.exit(1);
 }
 
 const vector = {
@@ -68,4 +68,4 @@ console.log(`req_sha256_hex=${reqSha}`);
 console.log(`res_sha256_hex=${resSha}`);
 console.log(`tee_pubkey_hex=${pubkeyHex}`);
 console.log(`signed_text=${signedText}`);
-console.log(`Vektor tersimpan: ${out}`);
+console.log(`Vector saved: ${out}`);

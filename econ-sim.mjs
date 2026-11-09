@@ -1,8 +1,8 @@
-// ECON-101..103 — Simulasi makro ekonomi Snacc: 10.000 epoch Monte Carlo (seed deterministik).
-// Semua angka mekanisme diambil PERSIS dari snacc-vault (F2, F4, F6, Model Data, Spec Antarmuka Kontrak).
-// Angka yang TIDAK ada di spec diberi label ASUMSI di docs/econ-sim.md (lihat ASUMSI di bawah).
+// ECON-101..103 — Snacc economy macro simulation: 10,000-epoch Monte Carlo (deterministic seed).
+// All mechanism numbers are taken EXACTLY from snacc-vault (F2, F4, F6, Data Model, Contract Interface Spec).
+// Numbers that are NOT in the spec are labeled ASSUMPTION in docs/econ-sim.md (see ASSUMPTIONS below).
 //
-// Jalankan: node econ-sim.mjs
+// Run: node econ-sim.mjs
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -10,54 +10,54 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// ============================ KONSTANTA SPEC (jangan diubah) ============================
+// ============================ SPEC CONSTANTS (do not change) ============================
 const VOLUME_DECAY_PER_SEC = 50;          // ADR-27 / spec F4
-const FEVER_THRESHOLD = 1400;             // mK, spec F4 zona 1
-const HYPOTHERMIA_THRESHOLD = 600;        // mK, spec F4 zona 3
-const FEVER_BURN_BPS = 350;               // 3,50% dari snacc_catalyst_fee (spec F4 / I-01)
-const REBATE_BPS = 200;                   // 2,00% dari rule_bound_treasury (spec F4)
-const REBATE_CAP_BPS = 500;               // cap subsidi/epoch, 5% treasury awal epoch (I-04)
+const FEVER_THRESHOLD = 1400;             // mK, spec F4 zone 1
+const HYPOTHERMIA_THRESHOLD = 600;        // mK, spec F4 zone 3
+const FEVER_BURN_BPS = 350;               // 3.50% of snacc_catalyst_fee (spec F4 / I-01)
+const REBATE_BPS = 200;                   // 2.00% of rule_bound_treasury (spec F4)
+const REBATE_CAP_BPS = 500;               // subsidy cap/epoch, 5% of the epoch-start treasury (I-04)
 const BMR_PER_ROLE = { Extractor: 100, Fermenter: 120, Synthesizer: 150 }; // spec F1
 const INITIAL_VITALITY = 8500;            // spec F1
 const INITIAL_EFFICIENCY_BPS = 10000;     // spec F1 / F2
-const VITALITY_RECOVERY_ON_FEED = 500;    // spec F2 (pemulihan metabolik)
+const VITALITY_RECOVERY_ON_FEED = 500;    // spec F2 (metabolic recovery)
 const MAX_VITALITY = 10000;               // I-02
-const INCUBATE_SPLIT_WORKING_BPS = 8000;  // 80% modal kerja strain (spec F1)
+const INCUBATE_SPLIT_WORKING_BPS = 8000;  // 80% strain working capital (spec F1)
 const INCUBATE_SPLIT_TREASURY_BPS = 2000; // 20% treasury (spec F1 / D6)
-const LIQUIDATOR_BOUNTY_BPS = 1000;       // 10% bounty likuidator (spec F6)
-const TREASURY_RECOVERY_BPS = 9000;       // 90% ke treasury (spec F6)
+const LIQUIDATOR_BOUNTY_BPS = 1000;       // 10% liquidator bounty (spec F6)
+const TREASURY_RECOVERY_BPS = 9000;       // 90% to treasury (spec F6)
 const MT_MINT_DENOM = 10000;              // floor(spores_burned * efficiency_bps / 10000) (spec F2)
 
-// ============================ ASUMSI (TIDAK ada di spec — di-flag di docs) ============================
-const ASUMSI = {
-  EPOCH_SEC: 3600,                // 1 epoch = 1 jam (BMR di spec per jam)
-  INITIAL_SUPPLY: 1_000_000,      // basis spike S1.3 (supply ~1.000.000 $SNACC)
-  INITIAL_POPULATION: 200,        // populasi awal strain
-  INCUBATION_STAKE: 4000,         // modal inkubasi per strain (dibagi 80/20)
-  ALCHEMIST_POOL_INIT: 200_000,   // saldo awal dompet alkemis eksternal
-  CATALYST_FEE: 100,              // biaya katalis $SNACC per transmutasi (flat)
-  SPORES_PER_TX: 10,              // spora dibakar per transmutasi
-  P_BASE: 100,                    // harga dasar NPC per unit molekul tahap 1/2, $SNACC-ekuivalen (ASUMSI — usulan keputusan; tidak ada angka P_base di vault)
-  CYCLE_VOLUME_MIN: 800,          // model "fixed": nominal siklus produksi per transaksi (stoikiometri F2) — ASUMSI
-  CYCLE_VOLUME_MAX: 3000,         // volume tx = min(saldo strain, U(CYCLE_VOLUME_MIN, CYCLE_VOLUME_MAX))
-  VELOCITY_MIN: 2,                // model "velocity": volume tx = saldo x U(VELOCITY_MIN, VELOCITY_MAX) — ASUMSI
-  VELOCITY_MAX: 6,                // (sensitivitas: spec tidak mendefinisikan magnitudo V_epoch vs supply)
-  P_ACT_BASE: 0.45,               // peluang dasar strain bertransaksi per epoch
-  P_ACT_WAVE_AMP: 0.25,           // amplitudo gelombang sentimen (siklus aktivitas pasar)
-  P_ACT_WAVE_PERIOD: 900,         // periode gelombang (epoch)
-  P_FEED_URGENT: 0.9,             // peluang feed darurat bila vitality efektif < 3000
+// ============================ ASSUMPTIONS (NOT in the spec — flagged in docs) ============================
+const ASSUMPTIONS = {
+  EPOCH_SEC: 3600,                // 1 epoch = 1 hour (BMR in the spec is per hour)
+  INITIAL_SUPPLY: 1_000_000,      // spike S1.3 basis (supply ~1,000,000 $SNACC)
+  INITIAL_POPULATION: 200,        // initial strain population
+  INCUBATION_STAKE: 4000,         // incubation capital per strain (split 80/20)
+  ALCHEMIST_POOL_INIT: 200_000,   // initial balance of the external alchemist wallet
+  CATALYST_FEE: 100,              // $SNACC catalyst fee per transmutation (flat)
+  SPORES_PER_TX: 10,              // spores burned per transmutation
+  P_BASE: 100,                    // NPC base price per stage 1/2 molecule unit, $SNACC-equivalent (ASSUMPTION — decision proposal; no P_base number in the vault)
+  CYCLE_VOLUME_MIN: 800,          // "fixed" model: nominal production cycle per transaction (F2 stoichiometry) — ASSUMPTION
+  CYCLE_VOLUME_MAX: 3000,         // tx volume = min(strain balance, U(CYCLE_VOLUME_MIN, CYCLE_VOLUME_MAX))
+  VELOCITY_MIN: 2,                // "velocity" model: tx volume = balance x U(VELOCITY_MIN, VELOCITY_MAX) — ASSUMPTION
+  VELOCITY_MAX: 6,                // (sensitivity: the spec does not define the magnitude of V_epoch vs supply)
+  P_ACT_BASE: 0.45,               // base probability that a strain transacts per epoch
+  P_ACT_WAVE_AMP: 0.25,           // sentiment wave amplitude (market activity cycle)
+  P_ACT_WAVE_PERIOD: 900,         // wave period (epochs)
+  P_FEED_URGENT: 0.9,             // probability of an emergency feed when effective vitality < 3000
   URGENT_THRESHOLD: 3000,
-  P_REINCUBATE: 0.6,              // peluang inkubasi pengganti saat ada likuidasi
-  P_NEW_ENTRANT: 0.03,            // peluang alkemis baru inkubasi spontan per epoch
-  EXTERNAL_INFLOW: 1000,          // onboarding pengguna eksternal baru per epoch ($SNACC)
+  P_REINCUBATE: 0.6,              // probability of a replacement incubation when a liquidation happens
+  P_NEW_ENTRANT: 0.03,            // probability that a new alchemist incubates spontaneously per epoch
+  EXTERNAL_INFLOW: 1000,          // new external user onboarding per epoch ($SNACC)
 };
 
-const SEED = 2071114; // seed deterministik (tanggal submit hackathon)
+const SEED = 2071114; // deterministic seed (hackathon submission date)
 const EPOCHS = 10000;
-const FREEZE_START = 3000;  // skenario falsifikasi: semua agen berhenti feed
-const FREEZE_END = 3500;    // selama epoch [3000, 3500)
+const FREEZE_START = 3000;  // falsification scenario: all agents stop feeding
+const FREEZE_END = 3500;    // during epochs [3000, 3500)
 
-// ============================ RNG deterministik (mulberry32) ============================
+// ============================ Deterministic RNG (mulberry32) ============================
 function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {
@@ -68,17 +68,17 @@ function mulberry32(seed) {
   };
 }
 
-// ============================ Mesin simulasi ============================
-// Konservasi $SNACC: external_pool = M - treasury - sum(strain balances) - alchemist_pool.
-// M (ft_total_supply) hanya berubah lewat ft_burn (Calcination Fever).
+// ============================ Simulation engine ============================
+// $SNACC conservation: external_pool = M - treasury - sum(strain balances) - alchemist_pool.
+// M (ft_total_supply) only changes via ft_burn (Calcination Fever).
 
 function runSimulation({
   label, freeze = false, volumeModel = "fixed", volumeScale = 1, silent = false,
   feverThreshold = FEVER_THRESHOLD, hypothermiaThreshold = HYPOTHERMIA_THRESHOLD,
-  atpVolumeScale = 0, // EN-117 varian ATP: kontribusi volume per ATP (sim: 1 ATP/tx)
+  atpVolumeScale = 0, // EN-117 ATP variant: volume contribution per ATP (sim: 1 ATP/tx)
 }) {
   const rng = mulberry32(SEED);
-  const A = { ...ASUMSI, VOLUME_MODEL: volumeModel, ATP_VOLUME_SCALE: atpVolumeScale };
+  const A = { ...ASSUMPTIONS, VOLUME_MODEL: volumeModel, ATP_VOLUME_SCALE: atpVolumeScale };
 
   let totalSupply = A.INITIAL_SUPPLY;
   let treasury = 0;
@@ -100,7 +100,7 @@ function runSimulation({
     if (alchemistPool < A.INCUBATION_STAKE) return false;
     alchemistPool -= A.INCUBATION_STAKE;
     const working = Math.floor((A.INCUBATION_STAKE * INCUBATE_SPLIT_WORKING_BPS) / 10000);
-    treasury += A.INCUBATION_STAKE - working; // 20% ke Rule-Bound Treasury (D6)
+    treasury += A.INCUBATION_STAKE - working; // 20% to the Rule-Bound Treasury (D6)
     const roles = Object.keys(BMR_PER_ROLE);
     const role = roles[Math.floor(rng() * roles.length)];
     strains.set(nextId, {
@@ -116,7 +116,7 @@ function runSimulation({
     return true;
   }
 
-  // Populasi awal
+  // Initial population
   for (let i = 0; i < A.INITIAL_POPULATION; i++) incubate();
 
   const tempSamples = [];
@@ -126,7 +126,7 @@ function runSimulation({
 
   for (let epoch = 0; epoch < EPOCHS; epoch++) {
     const frozen = freeze && epoch >= FREEZE_START && epoch < FREEZE_END;
-    // Gelombang sentimen pasar (ASUMSI): aktivitas naik-turun siklik + noise
+    // Market sentiment wave (ASSUMPTION): cyclic activity up/down + noise
     const wave = Math.sin((2 * Math.PI * epoch) / A.P_ACT_WAVE_PERIOD);
     const pAct = frozen ? 0 : Math.min(0.95, Math.max(0.05, A.P_ACT_BASE + A.P_ACT_WAVE_AMP * wave + (rng() - 0.5) * 0.1));
 
@@ -137,7 +137,7 @@ function runSimulation({
     const dead = [];
     const legsBreakdown = { k1: 0, k2: 0, k3: 0, k4: 0 };
 
-    // --- Fase 1: BMR lazy decay (1 jam per epoch) + perilaku agen ---
+    // --- Phase 1: lazy BMR decay (1 hour per epoch) + agent behavior ---
     for (const s of strains.values()) {
       s.vitality = Math.max(0, s.vitality - s.bmr); // effective_vitality (ADR-12 lazy)
       if (s.vitality === 0) { dead.push(s.id); continue; }
@@ -147,29 +147,29 @@ function runSimulation({
       if (!frozen && wants && s.balance >= A.CATALYST_FEE) {
         s.balance -= A.CATALYST_FEE;
         feePoolEpoch += A.CATALYST_FEE;
-        // === Model V_epoch ===
-        // "fixed"/"velocity": proxy satu-kaki (ASUMSI lama, dipertahankan untuk kompatibilitas ECON-101..103).
-        // "legs" (OPSI B, keputusan pemilik): omset ekonomi bruto multi-kaki yang dicatat kontrak —
-        //   K1 fee katalis + K2 mt_burn + K3 mt_mint ($SNACC-ekuivalen P_BASE) + K4 kas likuidasi.
-        //   Skala VOLUME_SCALE = satuan V_epoch (unit ekonomi per kaki molekul), bukan pengali kas.
-        // Rebate I-04 TIDAK dihitung (transfer internal tanpa kerja produksi; mencegah feedback loop rebate→suhu).
+        // === V_epoch model ===
+        // "fixed"/"velocity": single-leg proxy (old ASSUMPTION, kept for ECON-101..103 compatibility).
+        // "legs" (OPTION B, owner decision): gross multi-leg economic turnover recorded by the contract —
+        //   K1 catalyst fee + K2 mt_burn + K3 mt_mint ($SNACC-equivalent P_BASE) + K4 liquidation cash.
+        //   VOLUME_SCALE = the V_epoch unit (economic unit per molecule leg), not a cash multiplier.
+        // Rebate I-04 is NOT counted (internal transfer without production work; prevents a rebate→temperature feedback loop).
         const P = A.P_BASE;
         const SPORES = A.SPORES_PER_TX;
         if (A.VOLUME_MODEL === "legs") {
-          // Opsi B (keputusan pemilik 2026-11-07): V_epoch = omset ekonomi bruto multi-kaki.
-          // K1 fee katalis ($SNACC × 1) + K2 mt_burn + K3 mt_mint
-          // (unit molekul × VOLUME_SCALE × P_BASE, $SNACC-ekuivalen).
-          // K4 (mutasi kas $SNACC non-fee: kas likuidasi) dihitung di fase 2 dan
-          // ditambahkan ke volumeEpoch SETELAH fase 2 (lihat bawah) — bukan per-tx.
-          // EKSKLUSI (bukan omset produksi): rebate I-04, klaim dividen DK-033,
-          // transfer antar akun, dan modal inkubasi — mencegah feedback loop ke suhu.
+          // Option B (owner decision 2026-11-07): V_epoch = gross multi-leg economic turnover.
+          // K1 catalyst fee ($SNACC × 1) + K2 mt_burn + K3 mt_mint
+          // (molecule units × VOLUME_SCALE × P_BASE, $SNACC-equivalent).
+          // K4 (non-fee $SNACC cash movements: liquidation cash) is computed in phase 2 and
+          // added to volumeEpoch AFTER phase 2 (see below) — not per-tx.
+          // EXCLUDED (not production turnover): rebate I-04, dividend claims DK-033,
+          // transfers between accounts, and incubation capital — prevents a feedback loop into temperature.
           const unit = volumeScale;
           const k1 = A.CATALYST_FEE;                                             // K1
           const k2 = SPORES * unit * P;                                          // K2
           const minted = Math.floor((SPORES * s.effBps) / MT_MINT_DENOM);
           const k3 = minted * unit * P;                                          // K3
-          // EN-117 varian ATP: 1 ATP per tx (sim abstraction dari feed) × scale
-          // — masuk V_epoch epoch yang sama (decay seragam via volumeEpoch).
+          // EN-117 ATP variant: 1 ATP per tx (sim abstraction of feed) × scale
+          // — enters V_epoch of the same epoch (uniform decay via volumeEpoch).
           const atpVol = A.ATP_VOLUME_SCALE;
           const vol = k1 + k2 + k3 + atpVol;
           volumeEpoch += vol;
@@ -182,51 +182,51 @@ function runSimulation({
           volumeEpoch += vol;
           volumeByStrain.set(s.id, vol);
         }
-        // Transmutasi F2: bakar spora, cetak enzim sesuai efficiency_bps
+        // Transmutation F2: burn spores, mint enzymes per efficiency_bps
         totalEnzymesMinted += Math.floor((A.SPORES_PER_TX * s.effBps) / MT_MINT_DENOM);
         s.vitality = Math.min(MAX_VITALITY, s.vitality + VITALITY_RECOVERY_ON_FEED);
       }
     }
 
-    // --- Fase 2: likuidasi Chapter 7 (F6) untuk strain insolven ---
+    // --- Phase 2: Chapter 7 liquidation (F6) for insolvent strains ---
     for (const id of dead) {
       const s = strains.get(id);
       strains.delete(id);
       const bounty = Math.floor((s.balance * LIQUIDATOR_BOUNTY_BPS) / 10000);
-      const recovery = s.balance - bounty; // 90% (F6: floor 10% bounty, sisanya treasury)
+      const recovery = s.balance - bounty; // 90% (F6: floor 10% bounty, the rest to the treasury)
       treasury += recovery;
       alchemistPool += bounty;
       bountyPaid += bounty;
       bankruptcies++;
-      // K4 (Opsi B): mutasi kas $SNACC non-fee pada likuidasi = bounty + recovery
-      // (kas berpindah dari neraca strain ke likuidator + treasury).
+      // K4 (Option B): non-fee $SNACC cash movement on liquidation = bounty + recovery
+      // (cash moves from the strain balance sheet to the liquidator + treasury).
       legsBreakdown.k4 += bounty + recovery;
-      // Pengganti inkubasi (ASUMSI perilaku pasar)
+      // Replacement incubation (market behavior ASSUMPTION)
       if (rng() < A.P_REINCUBATE) incubate();
     }
-    // K4 masuk V_epoch epoch yang sama (dihitung setelah fase 2, sebelum termostat).
+    // K4 enters V_epoch of the same epoch (computed after phase 2, before the thermostat).
     volumeEpoch += legsBreakdown.k4;
-    // Alkemis baru masuk spontan
+    // New alchemist enters spontaneously
     if (!frozen && rng() < A.P_NEW_ENTRANT) incubate();
 
-    // --- Fase 3: biaya katalis masuk kasir kontrak (ASUMSI: ke treasury) ---
+    // --- Phase 3: catalyst fees go into the contract cashier (ASSUMPTION: to the treasury) ---
     treasury += feePoolEpoch;
     totalFeesCollected += feePoolEpoch;
 
-    // Onboarding eksternal (ASUMSI): dana baru dari pemegang eksternal ke dompet alkemis
-    // (dihitung SETELAH fee dikreditkan agar konservasi tepat)
+    // External onboarding (ASSUMPTION): new funds from external holders into the alchemist wallet
+    // (computed AFTER the fee is credited so conservation is exact)
     const extPool = totalSupply - treasury - alchemistPool - [...strains.values()].reduce((a, s) => a + s.balance, 0);
     const inflow = Math.min(A.EXTERNAL_INFLOW, Math.max(0, extPool));
     alchemistPool += inflow;
 
-    // --- Fase 4: termostat CrucibleTemp (F4 / ADR-04 + ADR-27) ---
+    // --- Phase 4: CrucibleTemp thermostat (F4 / ADR-04 + ADR-27) ---
     const vDecayed = Math.max(0, volumeEpoch - EPOCH_SEC_ASSUMED * VOLUME_DECAY_PER_SEC);
     const temp = Math.floor((1000 * vDecayed) / Math.max(totalSupply, 1));
     tempSamples.push(temp);
 
     if (temp > feverThreshold) {
       feverEpochs++;
-      // Zona 1 Calcination Fever: bakar 350 bps dari fee katalis epoch ini (I-01)
+      // Zone 1 Calcination Fever: burn 350 bps of this epoch's catalyst fee (I-01)
       const burn = Math.floor((feePoolEpoch * FEVER_BURN_BPS) / 10000);
       if (burn > 0 && treasury >= burn) {
         treasury -= burn;
@@ -235,13 +235,13 @@ function runSimulation({
       }
     } else if (temp < hypothermiaThreshold) {
       hypoEpochs++;
-      // Zona 3 Hypothermia Rebate: 200 bps dari treasury, cap 500 bps dari treasury awal epoch (I-04)
+      // Zone 3 Hypothermia Rebate: 200 bps of the treasury, capped at 500 bps of the epoch-start treasury (I-04)
       const raw = Math.floor((treasury * REBATE_BPS) / 10000);
       const cap = Math.floor((treasuryAtEpochStart * REBATE_CAP_BPS) / 10000);
       let rebate = Math.min(raw, cap);
       const totalVol = [...volumeByStrain.values()].reduce((a, b) => a + b, 0);
       if (rebate > 0 && totalVol > 0) {
-        // Distribusi proporsional ke strain yang bertransaksi epoch ini
+        // Proportional distribution to the strains that transacted this epoch
         let distributed = 0;
         const entries = [...volumeByStrain.entries()];
         for (let i = 0; i < entries.length; i++) {
@@ -284,7 +284,7 @@ function runSimulation({
     feverPct: (100 * feverEpochs) / EPOCHS,
     hypoPct: (100 * hypoEpochs) / EPOCHS,
     normalPct: (100 * normalEpochs) / EPOCHS,
-    supplyInitial: ASUMSI.INITIAL_SUPPLY,
+    supplyInitial: ASSUMPTIONS.INITIAL_SUPPLY,
     supplyFinal: totalSupply,
     totalBurned,
     totalRebate,
@@ -299,14 +299,14 @@ function runSimulation({
     aliveFinal: strains.size,
     balanceBuckets: bucketize(finalBalances),
     medianBalance: finalBalances.length ? finalBalances[Math.floor(finalBalances.length / 2)] : 0,
-    // Rantai profit (untuk ECON-104..106 / econ-profit.mjs)
-    feeToTreasury: totalFeesCollected,       // 100% katalis fee → treasury (ASUMSI sim; PF-01 membagi 50/50 di kontrak)
+    // Profit chain (for ECON-104..106 / econ-profit.mjs)
+    feeToTreasury: totalFeesCollected,       // 100% catalyst fee → treasury (sim ASSUMPTION; PF-01 splits 50/50 in the contract)
     avgFeesPerEpoch: totalFeesCollected / EPOCHS,
     rebateTotal: totalRebate,
     burnTotal: totalBurned,
     enzymesMinted: totalEnzymesMinted,
     liquidationBounties: bountyPaid,
-    takeoverPremiumPaid: 0,                   // sim ini tidak memodelkan Chapter 11 (lihat catatan ECON-104..106)
+    takeoverPremiumPaid: 0,                   // this sim does not model Chapter 11 (see the ECON-104..106 notes)
     finalBalancesSorted: finalBalances,
     legs: legsTotals,
   };
@@ -314,13 +314,13 @@ function runSimulation({
   return result;
 }
 
-const EPOCH_SEC_ASSUMED = ASUMSI.EPOCH_SEC;
+const EPOCH_SEC_ASSUMED = ASSUMPTIONS.EPOCH_SEC;
 
-// Guard anti-NaN: seluruh metrik kunci wajib finite (lesson dari bug VELOCITY_MIN undefined).
+// Anti-NaN guard: all key metrics must be finite (lesson from the undefined VELOCITY_MIN bug).
 function assertFinite(m) {
   for (const [k, v] of Object.entries(m)) {
     if (!Number.isFinite(v)) {
-      console.error(`FATAL: metrik tidak finite: ${k} = ${v}`);
+      console.error(`FATAL: metric is not finite: ${k} = ${v}`);
       process.exit(1);
     }
   }
@@ -338,7 +338,7 @@ function bucketize(sorted) {
   return b;
 }
 
-// Kriteria death spiral (dari brief): supply terus menyusut HINGGA nol / treasury kolaps.
+// Death spiral criteria (from the brief): supply keeps shrinking UNTIL zero / treasury collapses.
 function judgeDeathSpiral(r) {
   const supplyCollapsing = r.supplyFinal === 0;
   const treasuryCollapsed = r.treasuryEverNegative || (r.treasuryFinal <= 0 && r.aliveFinal === 0);
@@ -346,7 +346,7 @@ function judgeDeathSpiral(r) {
   return supplyCollapsing || treasuryCollapsed || economyDead;
 }
 
-// ============================ Eksekusi (2 model volume x 2 skenario) ============================
+// ============================ Execution (2 volume models x 2 scenarios) ============================
 function main() {
 const scenarios = [
   { key: "baseline-fixed", opts: { label: "baseline (volume fixed)", volumeModel: "fixed" } },
@@ -358,78 +358,78 @@ const results = scenarios.map(({ key, opts }) => ({ key, r: runSimulation(opts) 
 
 function fmt(r) {
   const lines = [];
-  lines.push(`### Skenario: ${r.label} (seed ${r.seed}, ${r.epochs} epoch)`);
+  lines.push(`### Scenario: ${r.label} (seed ${r.seed}, ${r.epochs} epochs)`);
   lines.push("");
-  lines.push(`- CrucibleTemp: min ${r.tempMin} / rata-rata ${r.tempAvg} / max ${r.tempMax} mK`);
-  lines.push(`- Zona suhu: Fever ${r.feverPct.toFixed(2)}% · Hypothermia ${r.hypoPct.toFixed(2)}% · Normal ${r.normalPct.toFixed(2)}%`);
-  lines.push(`- Supply $SNACC: awal ${r.supplyInitial.toLocaleString("id-ID")} → akhir ${r.supplyFinal.toLocaleString("id-ID")}`);
-  lines.push(`- Total ft_burn (Fever): ${r.totalBurned.toLocaleString("id-ID")}`);
-  lines.push(`- Total rebate (Hypothermia): ${r.totalRebate.toLocaleString("id-ID")}`);
-  lines.push(`- Total biaya katalis terkumpul: ${r.totalFeesCollected.toLocaleString("id-ID")}`);
-  lines.push(`- Total enzim di-mint (mt_mint): ${r.totalEnzymesMinted.toLocaleString("id-ID")}`);
-  lines.push(`- Treasury akhir: ${r.treasuryFinal.toLocaleString("id-ID")} (minimum sepanjang sim: ${r.treasuryMin.toLocaleString("id-ID")}, pernah negatif: ${r.treasuryEverNegative ? "YA — PELANGGARAN I-04" : "tidak"})`);
-  lines.push(`- Kebangkrutan (Chapter 7): ${r.bankruptcies} · Inkubasi: ${r.incubations} · Bounty likuidator: ${r.bountyPaid.toLocaleString("id-ID")}`);
-  lines.push(`- Strain hidup di akhir: ${r.aliveFinal} · saldo median: ${r.medianBalance.toLocaleString("id-ID")}`);
-  lines.push(`- Distribusi saldo akhir: ${JSON.stringify(r.balanceBuckets)}`);
-  lines.push(`- **Death spiral: ${r.deathSpiral ? "YA" : "TIDAK"}** (kriteria: supply → 0, treasury kolaps/negatif, atau populasi mati total)`);
+  lines.push(`- CrucibleTemp: min ${r.tempMin} / average ${r.tempAvg} / max ${r.tempMax} mK`);
+  lines.push(`- Temperature zones: Fever ${r.feverPct.toFixed(2)}% · Hypothermia ${r.hypoPct.toFixed(2)}% · Normal ${r.normalPct.toFixed(2)}%`);
+  lines.push(`- $SNACC supply: initial ${r.supplyInitial.toLocaleString("en-US")} → final ${r.supplyFinal.toLocaleString("en-US")}`);
+  lines.push(`- Total ft_burn (Fever): ${r.totalBurned.toLocaleString("en-US")}`);
+  lines.push(`- Total rebate (Hypothermia): ${r.totalRebate.toLocaleString("en-US")}`);
+  lines.push(`- Total catalyst fees collected: ${r.totalFeesCollected.toLocaleString("en-US")}`);
+  lines.push(`- Total enzymes minted (mt_mint): ${r.totalEnzymesMinted.toLocaleString("en-US")}`);
+  lines.push(`- Final treasury: ${r.treasuryFinal.toLocaleString("en-US")} (minimum during the sim: ${r.treasuryMin.toLocaleString("en-US")}, ever negative: ${r.treasuryEverNegative ? "YES — I-04 VIOLATION" : "no"})`);
+  lines.push(`- Bankruptcies (Chapter 7): ${r.bankruptcies} · Incubations: ${r.incubations} · Liquidator bounty: ${r.bountyPaid.toLocaleString("en-US")}`);
+  lines.push(`- Strains alive at the end: ${r.aliveFinal} · median balance: ${r.medianBalance.toLocaleString("en-US")}`);
+  lines.push(`- Final balance distribution: ${JSON.stringify(r.balanceBuckets)}`);
+  lines.push(`- **Death spiral: ${r.deathSpiral ? "YES" : "NO"}** (criteria: supply → 0, treasury collapses/goes negative, or the population dies out entirely)`);
   if (r.aliveFinal <= 10 && r.aliveFinal > 0) {
-    lines.push(`- ⚠️ Catatan: populasi menyusut menjadi ${r.aliveFinal} strain — rebate proporsional volume menciptakan konsentrasi kekayaan (rich-get-richer), bukan kolaps.`);
+    lines.push(`- ⚠️ Note: the population shrinks to ${r.aliveFinal} strains — volume-proportional rebate creates wealth concentration (rich-get-richer), not a collapse.`);
   }
   lines.push("");
   return lines.join("\n");
 }
 
-const report = `# ECON-101..103 — Simulasi Makro Ekonomi Snacc (10.000 Epoch)
+const report = `# ECON-101..103 — Snacc Economy Macro Simulation (10,000 Epochs)
 
-Dibuat otomatis oleh \`scripts/econ-sim.mjs\` (seed ${SEED}, deterministik — hasil dapat direproduksi).
+Generated automatically by \`scripts/econ-sim.mjs\` (seed ${SEED}, deterministic — results are reproducible).
 
-## Rumus yang dipakai (persis dari spec)
+## Formulas used (exactly from the spec)
 
 - \`CrucibleTemp = floor(1000 * V_decayed / max(M_supply, 1))\` (ADR-04)
-- \`V_decayed = max(0, volume_epoch - delta_detik * VOLUME_DECAY_PER_SEC)\`, VOLUME_DECAY_PER_SEC = 50 (ADR-27)
-- Fever (\`>1400 mK\`): bakar \`350 bps\` dari katalis fee epoch → \`ft_burn\`, supply turun, burned naik (I-01)
-- Hypothermia (\`<600 mK\`): rebate \`200 bps\` dari treasury ke strain yang bertransaksi, cap total subsidi \`500 bps\`/epoch dari treasury awal epoch (I-04)
-- Vitalitas \`0..10000\`; awal inkubasi \`8500\`; BMR/jam Extractor 100, Fermenter 120, Synthesizer 150
-- Feed/transmutasi sukses: \`vitality = min(10000, effective_vitality + 500)\`, reset last_fed (F2)
-- Inkubasi: 80% modal kerja strain / 20% treasury (F1/D6)
-- Lisis (vitality 0): 10% bounty likuidator / 90% treasury (F6)
-- \`mt_mint\` enzim = \`floor(spores_burned * efficiency_bps / 10000)\`, efficiency_bps awal 10000 (F2)
+- \`V_decayed = max(0, volume_epoch - delta_seconds * VOLUME_DECAY_PER_SEC)\`, VOLUME_DECAY_PER_SEC = 50 (ADR-27)
+- Fever (\`>1400 mK\`): burn \`350 bps\` of the epoch catalyst fee → \`ft_burn\`, supply drops, burned rises (I-01)
+- Hypothermia (\`<600 mK\`): rebate \`200 bps\` of the treasury to strains that transact, total subsidy capped at \`500 bps\`/epoch of the epoch-start treasury (I-04)
+- Vitality \`0..10000\`; incubation start \`8500\`; BMR/hour Extractor 100, Fermenter 120, Synthesizer 150
+- Successful feed/transmutation: \`vitality = min(10000, effective_vitality + 500)\`, reset last_fed (F2)
+- Incubation: 80% strain working capital / 20% treasury (F1/D6)
+- Lysis (vitality 0): 10% liquidator bounty / 90% treasury (F6)
+- \`mt_mint\` enzymes = \`floor(spores_burned * efficiency_bps / 10000)\`, initial efficiency_bps 10000 (F2)
 
-## ASUMSI (tidak diatur spec — dinyatakan eksplisit)
+## ASSUMPTIONS (not governed by the spec — stated explicitly)
 
-1. 1 epoch = ${ASUMSI.EPOCH_SEC} detik (BMR di spec per jam), 10.000 epoch ≈ 416 hari.
-2. Supply awal ${ASUMSI.INITIAL_SUPPLY.toLocaleString("id-ID")} $SNACC (basis spike S1.3: supply ≈ 1.000.000 sebelum burn).
-3. Populasi awal ${ASUMSI.INITIAL_POPULATION} strain; modal inkubasi ${ASUMSI.INCUBATION_STAKE} $SNACC per strain (dibagi 80/20).
-4. Biaya katalis flat ${ASUMSI.CATALYST_FEE} $SNACC per transmutasi; masuk ke Rule-Bound Treasury.
-5. Volume epoch (2 model, karena spec tidak mendefinisikan magnitudo \`V_epoch\` vs supply — dianalisis keduanya):
-   - **fixed**: per transaksi = min(saldo strain, U(${ASUMSI.CYCLE_VOLUME_MIN}, ${ASUMSI.CYCLE_VOLUME_MAX})) $SNACC — siklus produksi berukuran tetap (stoikiometri F2);
-   - **velocity**: per transaksi = saldo strain × U(${ASUMSI.VELOCITY_MIN}, ${ASUMSI.VELOCITY_MAX}) — velocity of money.
-6. Aktivitas agen: peluang transaksi per epoch mengikuti gelombang sentimen sinusoida (periode ${ASUMSI.P_ACT_WAVE_PERIOD} epoch, amplitudo ${ASUMSI.P_ACT_WAVE_AMP}) + noise; feed darurat (p=${ASUMSI.P_FEED_URGENT}) bila vitalitas < ${ASUMSI.URGENT_THRESHOLD}.
-7. Strain insolven (vitality 0) dilikuidasi; pengganti diinkubasi dengan p=${ASUMSI.P_REINCUBATE}; alkemis baru spontan p=${ASUMSI.P_NEW_ENTRANT}/epoch; onboarding eksternal ${ASUMSI.EXTERNAL_INFLOW} $SNACC/epoch (dari pemegang eksternal — konservasi supply tetap terjaga).
-8. Spora dibakar per transmutasi: ${ASUMSI.SPORES_PER_TX} molekul; efficiency_bps konstan 10000 (tanpa mutasi TEE dalam sim ini).
-9. Skenario falsifikasi: semua agen berhenti feed/transaksi selama epoch ${FREEZE_START}–${FREEZE_END}, lalu aktivitas normal kembali.
+1. 1 epoch = ${ASSUMPTIONS.EPOCH_SEC} seconds (BMR in the spec is per hour), 10,000 epochs ≈ 416 days.
+2. Initial supply ${ASSUMPTIONS.INITIAL_SUPPLY.toLocaleString("en-US")} $SNACC (spike S1.3 basis: supply ≈ 1,000,000 before burn).
+3. Initial population ${ASSUMPTIONS.INITIAL_POPULATION} strains; incubation capital ${ASSUMPTIONS.INCUBATION_STAKE} $SNACC per strain (split 80/20).
+4. Flat catalyst fee ${ASSUMPTIONS.CATALYST_FEE} $SNACC per transmutation; goes to the Rule-Bound Treasury.
+5. Epoch volume (2 models, because the spec does not define the magnitude of \`V_epoch\` vs supply — both are analyzed):
+   - **fixed**: per transaction = min(strain balance, U(${ASSUMPTIONS.CYCLE_VOLUME_MIN}, ${ASSUMPTIONS.CYCLE_VOLUME_MAX})) $SNACC — fixed-size production cycle (F2 stoichiometry);
+   - **velocity**: per transaction = strain balance × U(${ASSUMPTIONS.VELOCITY_MIN}, ${ASSUMPTIONS.VELOCITY_MAX}) — velocity of money.
+6. Agent activity: the transaction probability per epoch follows a sinusoidal sentiment wave (period ${ASSUMPTIONS.P_ACT_WAVE_PERIOD} epochs, amplitude ${ASSUMPTIONS.P_ACT_WAVE_AMP}) + noise; emergency feed (p=${ASSUMPTIONS.P_FEED_URGENT}) when vitality < ${ASSUMPTIONS.URGENT_THRESHOLD}.
+7. Insolvent strains (vitality 0) are liquidated; replacements are incubated with p=${ASSUMPTIONS.P_REINCUBATE}; new alchemists appear spontaneously with p=${ASSUMPTIONS.P_NEW_ENTRANT}/epoch; external onboarding ${ASSUMPTIONS.EXTERNAL_INFLOW} $SNACC/epoch (from external holders — supply conservation is preserved).
+8. Spores burned per transmutation: ${ASSUMPTIONS.SPORES_PER_TX} molecules; efficiency_bps constant at 10000 (no TEE mutation in this sim).
+9. Falsification scenario: all agents stop feeding/transacting during epochs ${FREEZE_START}–${FREEZE_END}, then normal activity returns.
 
-## Hasil
+## Results
 
 ${results.map(({ r }) => fmt(r)).join("\n")}
-## Kesimpulan Death Spiral
+## Death Spiral Conclusion
 
-Kriteria (dari brief): supply terus menyusut HINGGA nol / treasury kolaps = death spiral; kalau ekonomi tetap hidup dengan supply lebih kecil = sehat.
+Criteria (from the brief): supply keeps shrinking UNTIL zero / treasury collapses = death spiral; if the economy stays alive with a smaller supply = healthy.
 
-| Skenario | Death spiral | Supply akhir | Treasury min | Populasi akhir |
+| Scenario | Death spiral | Final supply | Treasury min | Final population |
 | --- | --- | --- | --- | --- |
-${results.map(({ key, r }) => `| ${key} | **${r.deathSpiral ? "YA" : "TIDAK"}** | ${r.supplyFinal.toLocaleString("id-ID")} | ${r.treasuryMin.toLocaleString("id-ID")} | ${r.aliveFinal} |`).join("\n")}
+${results.map(({ key, r }) => `| ${key} | **${r.deathSpiral ? "YES" : "NO"}** | ${r.supplyFinal.toLocaleString("en-US")} | ${r.treasuryMin.toLocaleString("en-US")} | ${r.aliveFinal} |`).join("\n")}
 
-**Baseline: TIDAK ada death spiral di kedua model volume** — supply tidak pernah → 0, treasury tidak pernah negatif (cap I-04 bekerja), populasi tidak pernah punah. Ekonomi deflasioner by design tapi TETAP HIDUP → **sehat, bukan death spiral**. Catatan kejujuran: model *velocity* menghasilkan konsentrasi kekayaan (6 strain raksasa dari 200) — rebate proporsional volume memihak strain besar; model *fixed* menjaga distribusi (103 strain, median 6.347).
+**Baseline: there is NO death spiral in either volume model** — supply never → 0, the treasury never goes negative (the I-04 cap works), the population never goes extinct. The economy is deflationary by design but STAYS ALIVE → **healthy, not a death spiral**. Honesty note: the *velocity* model produces wealth concentration (6 giant strains out of 200) — volume-proportional rebate favors large strains; the *fixed* model keeps the distribution (103 strains, median 6,347).
 
-**Falsifikasi (freeze 500 epoch = 500 jam tanpa feed):**
+**Falsification (freeze 500 epochs = 500 hours without feeding):**
 
-- Runway metabolik maksimum hanya ${Math.floor(INITIAL_VITALITY / 150)}–${Math.floor(INITIAL_VITALITY / 100)} epoch (${Math.floor(INITIAL_VITALITY / 150 / 24)}–${Math.floor(INITIAL_VITALITY / 100 / 24)} hari) — freeze 500 epoch **pasti membunuh semua strain yang tidak feed**, di bawah model volume apa pun. Ini sifat BMR, bukan kegagalan termostat.
-- Model **fixed**: populasi punah total di dalam freeze (runway terpendek habis ~epoch ${FREEZE_START + 85}); rebate I-04 tidak bisa mencegahnya karena hanya mengalir ke strain yang bertransaksi. Setelah freeze, inkubasi ulang tidak berjalan karena modal alkemis eksternal sudah habis terserap → hanya ${results[2].r.aliveFinal} strain tersisa sampai epoch ${EPOCHS} → **sistem TIDAK pulih tanpa onboarding alkemis baru**.
-- Model **velocity**: strain bersaldo besar bertahan lebih lama; setelah aktivitas kembali mereka menarik volume + rebate dan mendanai inkubasi ulang → populasi pulih sebagian (${results[3].r.aliveFinal} strain) → **pulih terbatas, tidak kolaps**.
-- **Kesimpulan falsifikasi:** sistem **tidak pernah kolaps secara moneter** (supply & treasury selalu solvent di keempat skenario), tetapi **pulihnya bergantung pada onboarding alkemis baru**, bukan pada rebate. Rebate I-04 hanya menyelamatkan agen yang masih bertransaksi.
-- **TEMUAN EKSPLISIT (tidak disembunyikan):** pada model volume *fixed*, Fever = 0,00% sepanjang 10.000 epoch — dengan nominal siklus U(800, 3000) $SNACC dan ~90 transaksi/epoch, \`V_decayed\` maksimum hanya ~245.000, cukup untuk \`CrucibleTemp\` ≈ 5 mK terhadap supply 1.000.000. **Jalur burn I-01 (350 bps) TIDAK TERUJI** di skenario ini; burn hanya teruji pada model *velocity* (Fever 35–38%). Implikasi desain: threshold Fever \`>1400 mK\` mensyaratkan volume epoch > 1,4× supply per epoch — dengan asumsi wajar (siklus produksi kecil), ekonomi Snacc akan hidup permanen di zona Hypothermia dan burn hampir tidak pernah terpicu.
-- **Pelajaran desain (jujur, tanpa klaim):** ketahanan jangka panjang Snacc lebih ditentukan oleh onboarding alkemis baru (modal inkubasi eksternal) daripada oleh termostat rebate. Angka sensitif terhadap asumsi magnitudo volume (ASUMSI 5) — keduanya dilaporkan, tidak dipilih yang menguntungkan.
+- The maximum metabolic runway is only ${Math.floor(INITIAL_VITALITY / 150)}–${Math.floor(INITIAL_VITALITY / 100)} epochs (${Math.floor(INITIAL_VITALITY / 150 / 24)}–${Math.floor(INITIAL_VITALITY / 100 / 24)} days) — a 500-epoch freeze **certainly kills every strain that does not feed**, under any volume model. This is a property of BMR, not a thermostat failure.
+- **fixed** model: the population goes fully extinct inside the freeze (the shortest runway runs out around epoch ${FREEZE_START + 85}); the I-04 rebate cannot prevent it because it only flows to strains that transact. After the freeze, re-incubation does not run because the external alchemist capital has been fully absorbed → only ${results[2].r.aliveFinal} strains remain until epoch ${EPOCHS} → **the system does NOT recover without onboarding new alchemists**.
+- **velocity** model: strains with large balances last longer; once activity returns they draw volume + rebate and fund re-incubation → the population partially recovers (${results[3].r.aliveFinal} strains) → **limited recovery, no collapse**.
+- **Falsification conclusion:** the system **never collapses monetarily** (supply & treasury stay solvent in all four scenarios), but **its recovery depends on onboarding new alchemists**, not on the rebate. The I-04 rebate only saves agents that are still transacting.
+- **EXPLICIT FINDING (not hidden):** in the *fixed* volume model, Fever = 0.00% across all 10,000 epochs — with a cycle nominal of U(800, 3000) $SNACC and ~90 transactions/epoch, the maximum \`V_decayed\` is only ~245,000, enough for \`CrucibleTemp\` ≈ 5 mK against a 1,000,000 supply. **The I-01 burn path (350 bps) is NOT TESTED** in this scenario; the burn is only tested in the *velocity* model (Fever 35–38%). Design implication: the \`>1400 mK\` Fever threshold requires epoch volume > 1.4× supply per epoch — under reasonable assumptions (a small production cycle), the Snacc economy will live permanently in the Hypothermia zone and the burn will almost never trigger.
+- **Design lesson (honest, no claim):** Snacc's long-term resilience is determined more by onboarding new alchemists (external incubation capital) than by the rebate thermostat. The numbers are sensitive to the volume magnitude assumption (ASSUMPTION 5) — both are reported, the favorable one is not picked.
 `;
 
 console.log(report);
@@ -437,16 +437,16 @@ console.log(report);
 const docsDir = join(__dirname, "..", "docs");
 mkdirSync(docsDir, { recursive: true });
 writeFileSync(join(docsDir, "econ-sim.md"), report, "utf8");
-console.error(`OK — hasil ditulis ke ${join(docsDir, "econ-sim.md")}`);
+console.error(`OK — result written to ${join(docsDir, "econ-sim.md")}`);
 }
 
-// Jalankan main() hanya bila dieksekusi langsung (bukan di-import oleh econ-profit.mjs / econ-fever.mjs)
+// Run main() only when executed directly (not imported by econ-profit.mjs / econ-fever.mjs)
 import { pathToFileURL } from "node:url";
 const invoked = process.argv[1]
   ? import.meta.url === pathToFileURL(process.argv[1]).href
-  : false; // di-import (eval context tanpa argv[1])
+  : false; // imported (eval context without argv[1])
 if (invoked) {
   main();
 }
 
-export { runSimulation, assertFinite, SEED, EPOCHS, ASUMSI, FEVER_THRESHOLD, HYPOTHERMIA_THRESHOLD, VOLUME_DECAY_PER_SEC, FEVER_BURN_BPS, REBATE_BPS, REBATE_CAP_BPS, BMR_PER_ROLE, INITIAL_VITALITY, INITIAL_EFFICIENCY_BPS, VITALITY_RECOVERY_ON_FEED, MAX_VITALITY, INCUBATE_SPLIT_WORKING_BPS, INCUBATE_SPLIT_TREASURY_BPS, LIQUIDATOR_BOUNTY_BPS, TREASURY_RECOVERY_BPS, MT_MINT_DENOM, FREEZE_START, FREEZE_END };
+export { runSimulation, assertFinite, SEED, EPOCHS, ASSUMPTIONS, FEVER_THRESHOLD, HYPOTHERMIA_THRESHOLD, VOLUME_DECAY_PER_SEC, FEVER_BURN_BPS, REBATE_BPS, REBATE_CAP_BPS, BMR_PER_ROLE, INITIAL_VITALITY, INITIAL_EFFICIENCY_BPS, VITALITY_RECOVERY_ON_FEED, MAX_VITALITY, INCUBATE_SPLIT_WORKING_BPS, INCUBATE_SPLIT_TREASURY_BPS, LIQUIDATOR_BOUNTY_BPS, TREASURY_RECOVERY_BPS, MT_MINT_DENOM, FREEZE_START, FREEZE_END };
