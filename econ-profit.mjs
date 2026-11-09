@@ -32,7 +32,7 @@ const SPORES_PER_TX = ASSUMPTIONS.SPORES_PER_TX; // 10 spores/transmutation (sim
 // ============ Run the final simulation ============
 // Default (ECON-104..106 compatibility): baseline-velocity as the PF source.
 // Mode `--opsib [SCALE]` (ECON-111 FINAL): PF source = Option B definition (legs model)
-// at the chosen VOLUME_SCALE + fallback FEVER threshold 610 mK (ECON-111 proposal).
+// at the chosen VOLUME_SCALE + the final FEVER threshold 610 mK (ECON-111 FINAL, Kamus D7).
 const OPSIB = process.argv.includes("--opsib");
 const opsibIdx = process.argv.indexOf("--opsib");
 const OPSIB_SCALE = OPSIB ? Number(process.argv[opsibIdx + 1]) || 5 : 0;
@@ -183,7 +183,7 @@ const cmp = [
 // ============ Report ============
 const report = `# ECON-104..106 — Profit Equations PF-01..09 from the Final Simulation Parameters
 
-Generated automatically by \`scripts/econ-profit.mjs\` (seed ${SEED}, ${EPOCHS} epochs, source scenario: **${main.label}**${OPSIB ? ` — ECON-111 FINAL: Option B definition (multi-leg turnover), VOLUME_SCALE=${OPSIB_SCALE}, proposed FEVER threshold 610 mK` : ""}; comparison: baseline-fixed). All numbers are **produced by code**, not typed by hand.
+Generated automatically by \`scripts/econ-profit.mjs\` (seed ${SEED}, ${EPOCHS} epochs, source scenario: **${main.label}**${OPSIB ? ` — ECON-111 FINAL: Option B definition (multi-leg turnover), VOLUME_SCALE=${OPSIB_SCALE}, final FEVER threshold 610 mK` : ""}; comparison: baseline-fixed). All numbers are **produced by code**, not typed by hand.
 
 ## 1. Definition sources (copied, not invented)
 
@@ -239,7 +239,7 @@ The *fixed* model splits the fee across ${alt.aliveFinal} strains (PF-01 per str
 
 ## 5. Explicit assumptions (besides the ECON-101..103 ASSUMPTIONS inherited)
 
-1. \`P_base = ${P_BASE}\` and scarcity ${S_SCARCITY}× for PF-07 — there is NO numeric P_base in the vault (the I-15 formula exists, the number does not) → marked as needing an owner decision.
+1. \`P_base = ${P_BASE}\` (recorded in vault §13a, matching the contract \`P_BASE\`) and scarcity ${S_SCARCITY}× for PF-07 — the scarcity factor is an ASSUMPTION (the I-15 formula is in the vault, the 2× is not).
 2. ATP = 1 per fee (EN-06: \`atp_minted = f(amount, efficiency_bps, level_mitokondria, zone)\` — the form of f is not defined in the vault).
 3. Great Feast top-3 share = 30% of volume (PF-09); the 5% treasury cap is taken from EN-02/I-04.
 4. PF-05 adopt cost = 10% bounty on working capital; restoration = ${feedsToRestore} feeds (from vitality 1 to ${MAX_VITALITY}, +500/feed — spec F2).
@@ -248,7 +248,7 @@ The *fixed* model splits the fee across ${alt.aliveFinal} strains (PF-01 per str
 
 ## 6. Unfinished / needs an owner decision
 
-- The numeric value of \`P_base\` (PF-07) and the form of the ATP function \`f\` (EN-06) are not in the vault yet → a decision is needed before contract implementation.
+- The form of the ATP function \`f\` (EN-06) is not in the vault yet → a decision is needed before contract implementation.
 - PF-05 (adopt), PF-09 (Great Feast), and Chapter 11 actions are not yet modeled as agent behavior in the macro simulation; their numbers are theoretical.
 - All values are testnet $SNACC with no monetary value — not a yield/ROI claim (vault honesty rule §6).
 `;

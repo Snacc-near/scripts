@@ -12,7 +12,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ============================ SPEC CONSTANTS (do not change) ============================
 const VOLUME_DECAY_PER_SEC = 50;          // ADR-27 / spec F4
-const FEVER_THRESHOLD = 1400;             // mK, spec F4 zone 1
+const FEVER_THRESHOLD = 610;              // mK — ECON-111 FINAL (Kamus D7 = contract FEVER_THRESHOLD_MK); supersedes the pre-decision 1400
 const HYPOTHERMIA_THRESHOLD = 600;        // mK, spec F4 zone 3
 const FEVER_BURN_BPS = 350;               // 3.50% of snacc_catalyst_fee (spec F4 / I-01)
 const REBATE_BPS = 200;                   // 2.00% of rule_bound_treasury (spec F4)
@@ -387,7 +387,7 @@ Generated automatically by \`scripts/econ-sim.mjs\` (seed ${SEED}, deterministic
 
 - \`CrucibleTemp = floor(1000 * V_decayed / max(M_supply, 1))\` (ADR-04)
 - \`V_decayed = max(0, volume_epoch - delta_seconds * VOLUME_DECAY_PER_SEC)\`, VOLUME_DECAY_PER_SEC = 50 (ADR-27)
-- Fever (\`>1400 mK\`): burn \`350 bps\` of the epoch catalyst fee → \`ft_burn\`, supply drops, burned rises (I-01)
+- Fever (\`>${FEVER_THRESHOLD} mK\`): burn \`350 bps\` of the epoch catalyst fee → \`ft_burn\`, supply drops, burned rises (I-01)
 - Hypothermia (\`<600 mK\`): rebate \`200 bps\` of the treasury to strains that transact, total subsidy capped at \`500 bps\`/epoch of the epoch-start treasury (I-04)
 - Vitality \`0..10000\`; incubation start \`8500\`; BMR/hour Extractor 100, Fermenter 120, Synthesizer 150
 - Successful feed/transmutation: \`vitality = min(10000, effective_vitality + 500)\`, reset last_fed (F2)
@@ -420,7 +420,7 @@ Criteria (from the brief): supply keeps shrinking UNTIL zero / treasury collapse
 | --- | --- | --- | --- | --- |
 ${results.map(({ key, r }) => `| ${key} | **${r.deathSpiral ? "YES" : "NO"}** | ${r.supplyFinal.toLocaleString("en-US")} | ${r.treasuryMin.toLocaleString("en-US")} | ${r.aliveFinal} |`).join("\n")}
 
-**Baseline: there is NO death spiral in either volume model** — supply never → 0, the treasury never goes negative (the I-04 cap works), the population never goes extinct. The economy is deflationary by design but STAYS ALIVE → **healthy, not a death spiral**. Honesty note: the *velocity* model produces wealth concentration (6 giant strains out of 200) — volume-proportional rebate favors large strains; the *fixed* model keeps the distribution (103 strains, median 6,347).
+**Baseline: there is NO death spiral in either volume model** — supply never → 0, the treasury never goes negative (the I-04 cap works), the population never goes extinct. The economy is deflationary by design but STAYS ALIVE → **healthy, not a death spiral**. Honesty note: the *velocity* model produces wealth concentration (${results[1].r.aliveFinal} giant strains out of 200) — volume-proportional rebate favors large strains; the *fixed* model keeps the distribution (${results[0].r.aliveFinal} strains, median ${results[0].r.medianBalance.toLocaleString("en-US")}).
 
 **Falsification (freeze 500 epochs = 500 hours without feeding):**
 
@@ -428,7 +428,7 @@ ${results.map(({ key, r }) => `| ${key} | **${r.deathSpiral ? "YES" : "NO"}** | 
 - **fixed** model: the population goes fully extinct inside the freeze (the shortest runway runs out around epoch ${FREEZE_START + 85}); the I-04 rebate cannot prevent it because it only flows to strains that transact. After the freeze, re-incubation does not run because the external alchemist capital has been fully absorbed → only ${results[2].r.aliveFinal} strains remain until epoch ${EPOCHS} → **the system does NOT recover without onboarding new alchemists**.
 - **velocity** model: strains with large balances last longer; once activity returns they draw volume + rebate and fund re-incubation → the population partially recovers (${results[3].r.aliveFinal} strains) → **limited recovery, no collapse**.
 - **Falsification conclusion:** the system **never collapses monetarily** (supply & treasury stay solvent in all four scenarios), but **its recovery depends on onboarding new alchemists**, not on the rebate. The I-04 rebate only saves agents that are still transacting.
-- **EXPLICIT FINDING (not hidden):** in the *fixed* volume model, Fever = 0.00% across all 10,000 epochs — with a cycle nominal of U(800, 3000) $SNACC and ~90 transactions/epoch, the maximum \`V_decayed\` is only ~245,000, enough for \`CrucibleTemp\` ≈ 5 mK against a 1,000,000 supply. **The I-01 burn path (350 bps) is NOT TESTED** in this scenario; the burn is only tested in the *velocity* model (Fever 35–38%). Design implication: the \`>1400 mK\` Fever threshold requires epoch volume > 1.4× supply per epoch — under reasonable assumptions (a small production cycle), the Snacc economy will live permanently in the Hypothermia zone and the burn will almost never trigger.
+- **EXPLICIT FINDING (not hidden):** in the *fixed* volume model, Fever = ${results[0].r.feverPct.toFixed(2)}% across all 10,000 epochs — with a cycle nominal of U(800, 3000) $SNACC and ~90 transactions/epoch, the maximum \`V_decayed\` stays below the threshold (max \`CrucibleTemp\` ${results[0].r.tempMax} mK against a 1,000,000 supply). **The I-01 burn path (350 bps) is NOT EXERCISED** in this scenario; it is exercised in the *velocity* model (Fever ${results[1].r.feverPct.toFixed(2)}% baseline / ${results[3].r.feverPct.toFixed(2)}% freeze). Design implication: the \`ECON-111\` FINAL threshold \`>${FEVER_THRESHOLD} mK\` (Kamus D7) is reached only when the decayed epoch volume exceeds ${(FEVER_THRESHOLD / 1000).toFixed(2)}× the supply — with a small production cycle the economy still spends most epochs in Hypothermia, so the burn triggers only in high-volume epochs.
 - **Design lesson (honest, no claim):** Snacc's long-term resilience is determined more by onboarding new alchemists (external incubation capital) than by the rebate thermostat. The numbers are sensitive to the volume magnitude assumption (ASSUMPTION 5) — both are reported, the favorable one is not picked.
 `;
 
