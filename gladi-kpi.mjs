@@ -98,7 +98,8 @@ async function txProof(txHash, signer) {
   const events = [];
   for (const l of logs) {
     if (l.startsWith("EVENT_JSON:")) {
-      try { events.push(JSON.parse(l.slice("EVENT_JSON:".length))); } catch { /* abaikan */ }
+      // Angka u128 di payload event melebihi 2^53: dikutip dulu agar BigInt() eksak (float menggeser digit bawah).
+      try { events.push(JSON.parse(l.slice("EVENT_JSON:".length).replace(/(:\s*)(\d{16,})(?=\s*[,}\]])/g, '$1"$2"'))); } catch { /* abaikan */ }
     }
   }
   const proof = { ok: !anyFailure, events };
@@ -282,7 +283,7 @@ const KPI = [
     } },
   { id: "G-15", nama: "NFT NEP-171 — byte SVG ≤1734 + `nft_transfer` sukses (transplantasi)", sumber: "LC-16, VC-009, NFT track",
     async check(m, proof) {
-      const token = await view("nft_token", { token_id: String(m.token_ids?.[0] ?? "1") });
+      const token = await view("nft_token", { token_id: String(m.svg_token_id ?? m.token_ids?.[0] ?? "1") });
       const size = Buffer.byteLength(mediaSvg(token), "utf8");
       const rs = await allEvents(proof).catch(() => []);
       const pass = size <= 1734 && allOk(rs) && hasEvent(flat(rs), "nft_transfer");
@@ -290,7 +291,7 @@ const KPI = [
     } },
   { id: "G-16", nama: "SVG indikator (needle, `$SNACC`, `$ATP`, `mK`, zona, organel)", sumber: "VC-009, EN-113",
     async check(m) {
-      const token = await view("nft_token", { token_id: String(m.token_ids?.[0] ?? "1") });
+      const token = await view("nft_token", { token_id: String(m.svg_token_id ?? m.token_ids?.[0] ?? "1") });
       const svg = mediaSvg(token);
       const need = ["SNACC", "ATP", "mK", "\u{1F321}"];
       const hit = need.filter((k) => svg.toLowerCase().includes(k.toLowerCase()));
@@ -334,12 +335,30 @@ const KPI = [
     } },
   { id: "G-21", nama: "Vault sub-account — `materialize_subaccount` + `s-<id>.*` terbentuk", sumber: "ADR-02/29, F1 (J3.2)",
     async check(m, proof) {
-      const id = m.strain_ids?.at(-1) ?? m.token_ids?.at(-1);
+      // Strain yang di-materialize dicatat gladi-run di manifest (`materialize_strain_id`); fallback: id terakhir.
+      const id = m.materialize_strain_id ?? m.strain_ids?.at(-1) ?? m.token_ids?.at(-1);
       const strain = id !== undefined ? await view("get_strain", { strain_id: Number(id) }) : null;
       const vault = strain?.vault_subaccount ?? "";
       const rs = await allEvents(proof).catch(() => []);
-      const pass = /^s-\d+\./.test(vault) && allOk(rs);
-      return { pass, bukti: `vault_subaccount=${vault || "(belum)"}${proof ? ` · tx ${proof.hashes.join(",")}` : " · tx belum ada"}` };
+      // Nama vault: `s-<id>-<tag>.<kontrak>` (tag unik lintas generasi state, audit W8); bentuk lama `s-<id>.` tetap diterima.
+      // Akun fisik harus benar-benar ada on-chain (callback `on_subaccount_created` tak me-refund).
+      let exists = false;
+      if (vault) {
+        try { exists = !!(await rpcCall("query", { request_type: "view_account", finality: "final", account_id: vault }))?.code_hash; }
+        catch { exists = false; }
+      }
+      const pass = /^s-\d+(-[a-z0-9]+)?\./.test(vault) && exists && allOk(rs);
+      return { pass, bukti: `vault_subaccount=${vault || "(belum)"} akun_ada=${exists}${proof ? ` · tx ${proof.hashes.join(",")}` : " · tx belum ada"}` };
+    } },
+  { id: "G-22", nama: "Trio NEP — `nft_metadata` (NEP-177) + `storage_deposit` registration_only (NEP-145) + enumerasi `nft_tokens` (NEP-181)", sumber: "NEP-177/145/181",
+    async check(m, proof) {
+      const [md, tokens, sup] = await Promise.all([
+        view("nft_metadata"), view("nft_tokens", { from_index: null, limit: 5 }), view("nft_supply_for_owner", { account_id: m.owner }),
+      ]);
+      const bal = await view("storage_balance_of", { account_id: m.owner });
+      const rs = await allEvents(proof).catch(() => []);
+      const pass = md.spec === "nft-1.0.0" && Array.isArray(tokens) && tokens.length > 0 && Number(sup) > 0 && !!bal && allOk(rs);
+      return { pass, bukti: `nft_metadata.spec=${md.spec} · nft_tokens=${Array.isArray(tokens) ? tokens.length : "?"} · nft_supply_for_owner=${sup} · storage_balance_of=${bal ? "terdaftar" : "belum"}${proof ? ` · tx ${proof.hashes.join(",")}` : " · tx belum ada"}` };
     } },
 ];
 
@@ -380,7 +399,7 @@ async function main() {
   const fail = rows.filter((r) => r.status === "FAIL").length;
   const belum = rows.filter((r) => r.status === "BELUM").length;
   const md = [
-    `# KPI Gladi — Hasil Auto-Check (21 KPI, v3 pasca-audit 3-POV ganda)`,
+    `# KPI Gladi — Hasil Auto-Check (${KPI.length} KPI, v4: deployment dengan jam sandbox)`,
     ``,
     `Tanggal: ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC · kontrak: \`${CONTRACT}\``,
     `Auto-check v3: tx wajib sukses + signer/receipt terikat kontrak + payload terikat entitas gladi +`,
@@ -392,8 +411,11 @@ async function main() {
     `> (atp_minted × 6×10^14) pada V_epoch SNAPSHOT PASCA-FEED (manifest.bukti_feed) —`,
     `> V_epoch ter-reset tiap advance_epoch, jadi nilai V_epoch AKHIR BUKAN bukti jejak ATP.`,
     `> Zona bisa saja berbeda dari gladi sebelumnya (suhu kini digerakkan ATP + legs).`,
-    `> NEP-177/145/181 baru (nft_metadata · storage_unregister/balance_bounds/registration_only ·`,
-    `> enumerasi nft_*) BELUM punya KPI — gladi-run mencatatnya sebagai G-22 (saran, menunggu arahan).`,
+    `> JAM SANDBOX: G-07/G-08/G-10 dan penutupan epoch (G-19/G-11) dijalankan dengan \`advance_sandbox_clock\``,
+    `> (owner-only, hanya akun .testnet, maks 720 jam/panggilan): penuaan BMR dan gerbang epoch 24 jam dipercepat,`,
+    `> BUKAN menunggu waktu nyata. Mekaniknya sama; kecepatan waktunya tidak mewakili produksi (mainnet tanpa jam ini).`,
+    `> G-22 = trio NEP-177/145/181 (nft_metadata · storage_deposit registration_only · enumerasi nft_*).`,
+    `> Cakupan G-22: bukti on-chain atas wasm ter-deploy (sha256 di manifest). Kode view NEP-177/181 belum ada di repo \`contracts\` publik, jadi bagian ini belum bisa dibangun ulang dari sumber publik.`,
     `> Ini BUKAN checklist kelengkapan produk. Yang TIDAK diuji di sini (dan harus dicek di Backlog Master):`,
     `> SDK lengkap (\`SDK-101..106\`), audit keamanan (\`SEC-110..118\`), integrasi NEAR AI (\`RES-101..103\` — Inference SDK,`,
     `> privacy/classify, verifikasi quote TDX), docs (\`DOC-*\`), ECON tails, e2e penuh, FE, video.`,

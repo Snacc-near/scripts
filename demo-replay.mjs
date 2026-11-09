@@ -23,10 +23,12 @@ const BEATS = [
   ["🔥 Suplai menyusut", ["G-17"], "`ft_burn` — fitur volatilitas: suplai turun saat ekonomi berputar."],
   ["🧫 Fusi & reproduksi", ["G-06", "G-09"], "Splice (pajak 2,5%, role_mask menyatu) → divide (sitokinesis, konservasi saldo)."],
   ["💰 Dividen industri", ["G-11"], "`mt:elixir-aether` dibakar → kontribusi epoch → klaim pro-rata."],
-  ["🏦 Vault sub-account", ["G-21"], "NFT punya rekening sendiri: `s-<id>.<akun-kontrak>`."],
+  ["⚔️ M&A & lisis", ["G-07", "G-08", "G-10"], "Strain yang kelaparan (Distressed, 1..2000 vitalitas) diambil alih: hostile 115% (95% ke pemilik lama, 5% treasury) atau adopt 100% book value; Insolvent (0) dilisis permissionless — bounty 10%, 90% ke treasury + Nutrient Burst. Penuaan dipercepat jam sandbox (`advance_sandbox_clock`, owner-only, akun .testnet)."],
+  ["💸 Transfer `$SNACC`", ["G-02"], "`ft_transfer` NEP-141 dari saldo hasil payout M&A ke akun lain."],
+  ["🏦 Vault sub-account", ["G-21"], "NFT punya rekening sendiri: `s-<id>-<tag>.<akun-kontrak>`."],
   ["🫀 Transplantasi NFT", ["G-15"], "`nft_transfer` NEP-171 — NFT (sel hidup + perut + organel) berpindah pemilik."],
   ["📊 Konsistensi & solvabilitas", ["G-12", "G-18", "G-20"], "`ft_total_supply == total_snacc_supply`; treasury tak pernah negatif; `V_epoch` hidup (suhu ATP-driven — zona bisa berbeda dari gladi sebelumnya)."],
-  ["📜 Kepatuhan NEP", ["G-22"], "NEP-177 `nft_metadata` (spec nft-1.0.0) · NEP-145 `storage_deposit(registration_only)` + bounds · NEP-181 enumerasi `nft_tokens`/`nft_supply_for_owner` — pintu masuk dompet & marketplace."],
+  ["📜 Kepatuhan NEP", ["G-22"], "NEP-177 `nft_metadata` (spec nft-1.0.0) · NEP-145 `storage_deposit(registration_only)` + bounds · NEP-181 enumerasi `nft_tokens`/`nft_supply_for_owner` — pintu masuk dompet & marketplace. Diverifikasi pada wasm ter-deploy; kode view-nya belum ada di repo publik."],
 ];
 
 
