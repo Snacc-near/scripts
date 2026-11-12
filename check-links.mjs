@@ -107,16 +107,24 @@ async function rpc(url, method, params) {
   return j.result ?? j.error ?? null;
 }
 
-/** Tries each endpoint in order; returns the first result without an error. */
-async function rpcAny(urls, method, params) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Tries each endpoint in order and returns the first result without an error. Public archival
+ * nodes rate-limit CI runners (429 / non-JSON bodies), so the whole list is retried with backoff.
+ */
+async function rpcAny(urls, method, params, rounds = 4) {
   let last = null;
-  for (const url of urls) {
-    try {
-      const r = await rpc(url, method, params);
-      if (r && !r.error && !r.name) return r;
-      last = r;
-    } catch (e) {
-      last = { error: String(e.message) };
+  for (let round = 0; round < rounds; round++) {
+    if (round > 0) await sleep(1500 * 2 ** (round - 1));
+    for (const url of urls) {
+      try {
+        const r = await rpc(url, method, params);
+        if (r && !r.error && !r.name) return r;
+        last = r;
+      } catch (e) {
+        last = { error: String(e.message) };
+      }
     }
   }
   return last;
