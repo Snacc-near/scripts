@@ -108,6 +108,7 @@ async function rpc(url, method, params) {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const txCache = new Map(); // tx hash -> Promise<null | problem string>, shared by every doc in one run
 
 /**
  * Tries each endpoint in order and returns the first result without an error. Public archival
@@ -219,14 +220,21 @@ async function main() {
 
     for (const tx of txHashes) {
       stats.txs++;
-      try {
-        const r = await rpcAny(RPC_TESTNET_ARCHIVAL, "EXPERIMENTAL_tx_status", [tx, "snacc-v001.testnet"]);
-        if (!r || r.error || !r.transaction) {
-          fail(rel, `tx hash not found on testnet: ${tx}`);
-        }
-      } catch (e) {
-        fail(rel, `tx hash ${tx}: RPC error ${String(e.message).slice(0, 80)}`);
+      // The same evidence hashes repeat across many docs; look each one up once per run so the
+      // public archival nodes are not hit with the same query dozens of times (they rate-limit CI).
+      if (!txCache.has(tx)) {
+        txCache.set(
+          tx,
+          rpcAny(RPC_TESTNET_ARCHIVAL, "EXPERIMENTAL_tx_status", [tx, "snacc-v001.testnet"], 6).then(
+            (r) => (!r || r.error || !r.transaction
+              ? `tx hash not found on testnet: ${tx} (${String(r?.name ?? r?.error ?? "no result").slice(0, 80)})`
+              : null),
+            (e) => `tx hash ${tx}: RPC error ${String(e.message).slice(0, 80)}`,
+          ),
+        );
       }
+      const problem = await txCache.get(tx);
+      if (problem) fail(rel, problem);
     }
 
     for (const acct of accounts) {
