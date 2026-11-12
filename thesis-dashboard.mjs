@@ -210,7 +210,7 @@ ORDER BY block_timestamp DESC;
 SELECT
   (args->>'epoch')::integer AS epoch,
   args->>'strain_id' AS strain_id,
-  (args->>'effective_fee')::numeric / 1e18 AS fee_snacc,
+  (args->>'effective_fee')::numeric / 1e24 AS fee_snacc,
   args->>'atp_minted' AS atp_minted
 FROM near.receipt_actions
 WHERE receiver_id = 'snacc-v001.testnet'

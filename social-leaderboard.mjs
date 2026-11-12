@@ -23,6 +23,18 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 export const SOCIAL_DB_CONTRACT = "social.near";
 
+/** $SNACC is a NEP-141 token with 24 decimals; amounts arrive as yocto strings. */
+export const SNACC_DECIMALS = 24n;
+
+/** Formats a yocto-$SNACC string as a decimal amount (truncated to 4 fraction digits). */
+export function formatSnacc(yocto) {
+  const v = BigInt(yocto);
+  const base = 10n ** SNACC_DECIMALS;
+  const whole = (v / base).toLocaleString("en-US");
+  const frac = (((v % base) * 10000n) / base).toString().padStart(4, "0").replace(/0+$/, "");
+  return frac ? `${whole}.${frac}` : whole;
+}
+
 /** Formats the Great Feast leaderboard and colony report into a SocialDB markdown post. */
 export function formatSocialPost(params) {
   const {
@@ -35,19 +47,19 @@ export function formatSocialPost(params) {
     colonyOwner = "",
     colonyStrainsCount = 0,
     colonyTotalAtp = "0",
-    network = "NEAR Protocol",
+    network = "NEAR testnet",
   } = params;
 
   const tempDisplay = String(crucibleTempMk); // the contract reports the temperature in mK already
-  const vNorm = (BigInt(feastVolume) / 10n ** 18n).toLocaleString("en-US");
-  const tNorm = (BigInt(feastTarget) / 10n ** 18n).toLocaleString("en-US");
+  const vNorm = formatSnacc(feastVolume);
+  const tNorm = formatSnacc(feastTarget);
 
   let feederLines = "No feeder contributions recorded for this epoch.";
   if (topFeeders.length > 0) {
     feederLines = topFeeders
       .slice(0, 3)
       .map((f, i) => {
-        const amt = (BigInt(f.amount) / 10n ** 18n).toLocaleString("en-US");
+        const amt = formatSnacc(f.amount);
         const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
         return `${medal} **#${i + 1} \`${f.account_id}\`** — ${amt} $SNACC`;
       })
@@ -126,7 +138,7 @@ export async function fetchLiveLeaderboardData(apiBase) {
     feastVolume: appetiteRes?.feast_volume ?? "0",
     feastTarget: appetiteRes?.feast_target ?? "0",
     topFeeders: appetiteRes?.top_feeders ?? [],
-    network: macroRes?.contractId ? "NEAR Protocol (" + macroRes.contractId + ")" : "NEAR Protocol",
+    network: macroRes?.contractId ? "NEAR testnet (" + macroRes.contractId + ")" : "NEAR testnet",
   };
 }
 

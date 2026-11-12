@@ -3,6 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   formatSocialPost,
+  formatSnacc,
   buildSocialDbPayload,
   SOCIAL_DB_CONTRACT,
   resolveApiBase,
@@ -37,6 +38,13 @@ test("formatSocialPost formats podium with top 3 feeders", () => {
   // 4th feeder is excluded from podium (top 3 cap)
   assert.ok(!post.includes("david.near"));
   assert.ok(post.includes("#SocialDB"));
+});
+
+test("formatSnacc uses 24 decimals", () => {
+  assert.equal(formatSnacc("1000000000000000000000000"), "1");
+  assert.equal(formatSnacc("35828000000000000000000"), "0.0358");
+  assert.equal(formatSnacc("0"), "0");
+  assert.equal(formatSnacc("196514000000000000000000000000"), "196,514");
 });
 
 test("formatSocialPost handles empty feeders gracefully", () => {
