@@ -23,8 +23,11 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PROJECT_ROOT = resolve(ROOT, "../.."); // NEAR-AI-Hackathon/ (reports/ lives here)
 const STRICT_HTTP = process.argv.includes("--strict-http");
-const RPC_TESTNET = "https://near-testnet.drpc.org";
-const RPC_MAINNET = "https://rpc.mainnet.near.org";
+const RPC_TESTNET = ["https://near-testnet.drpc.org", "https://rpc.testnet.near.org"];
+// Regular RPC nodes garbage-collect transactions after a few epochs (~2-3 days), so evidence
+// tx hashes must be looked up on archival nodes.
+const RPC_TESTNET_ARCHIVAL = ["https://archival-rpc.testnet.near.org", "https://archival-rpc.testnet.fastnear.com"];
+const RPC_MAINNET = ["https://rpc.mainnet.near.org"];
 
 const FILES = [
   "README.md",
@@ -102,6 +105,21 @@ async function rpc(url, method, params) {
   });
   const j = await res.json();
   return j.result ?? j.error ?? null;
+}
+
+/** Tries each endpoint in order; returns the first result without an error. */
+async function rpcAny(urls, method, params) {
+  let last = null;
+  for (const url of urls) {
+    try {
+      const r = await rpc(url, method, params);
+      if (r && !r.error && !r.name) return r;
+      last = r;
+    } catch (e) {
+      last = { error: String(e.message) };
+    }
+  }
+  return last;
 }
 
 function resolvePath(tok, baseDir) {
@@ -194,7 +212,7 @@ async function main() {
     for (const tx of txHashes) {
       stats.txs++;
       try {
-        const r = await rpc(RPC_TESTNET, "EXPERIMENTAL_tx_status", [tx, "snacc-v001.testnet"]);
+        const r = await rpcAny(RPC_TESTNET_ARCHIVAL, "EXPERIMENTAL_tx_status", [tx, "snacc-v001.testnet"]);
         if (!r || r.error || !r.transaction) {
           fail(rel, `tx hash not found on testnet: ${tx}`);
         }
@@ -205,9 +223,9 @@ async function main() {
 
     for (const acct of accounts) {
       stats.accounts++;
-      const url = acct.endsWith(".testnet") ? RPC_TESTNET : RPC_MAINNET;
+      const urls = acct.endsWith(".testnet") ? RPC_TESTNET : RPC_MAINNET;
       try {
-        const r = await rpc(url, "query", {
+        const r = await rpcAny(urls, "query", {
           request_type: "view_account",
           finality: "final",
           account_id: acct,
