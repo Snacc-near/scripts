@@ -1,7 +1,14 @@
 // social-leaderboard.test.mjs — RES-113: unit tests for SocialDB leaderboard publication module.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { formatSocialPost, buildSocialDbPayload, SOCIAL_DB_CONTRACT } from "./social-leaderboard.mjs";
+import {
+  formatSocialPost,
+  buildSocialDbPayload,
+  SOCIAL_DB_CONTRACT,
+  resolveApiBase,
+  FIXTURE_DATA,
+  FIXTURE_BANNER,
+} from "./social-leaderboard.mjs";
 
 test("SOCIAL_DB_CONTRACT points to standard social.near", () => {
   assert.equal(SOCIAL_DB_CONTRACT, "social.near");
@@ -59,4 +66,17 @@ test("buildSocialDbPayload constructs compliant SocialDB set structure", () => {
 
 test("buildSocialDbPayload rejects empty account ID", () => {
   assert.throws(() => buildSocialDbPayload("", "test"), /Invalid account ID/);
+});
+
+test("resolveApiBase has no default and fails with a clear message", () => {
+  assert.throws(() => resolveApiBase([], {}), /No API base configured/);
+  assert.equal(resolveApiBase(["--api", "http://x"], {}), "http://x");
+  assert.equal(resolveApiBase([], { SNACC_API_BASE: "http://env" }), "http://env");
+  assert.equal(resolveApiBase([], { VITE_API_BASE: "http://vite" }), "http://vite");
+});
+
+test("fixture data is invented, testnet-only, and labelled", () => {
+  assert.ok(FIXTURE_BANNER.includes("FIXTURE"));
+  assert.ok(FIXTURE_DATA.network.includes("FIXTURE"));
+  for (const f of FIXTURE_DATA.topFeeders) assert.ok(f.account_id.endsWith(".testnet"));
 });

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// social-leaderboard.mjs — RES-113: Publish Great Feast leaderboard and colony proof to SocialDB (social.near).
+// social-leaderboard.mjs — RES-113: Build a SocialDB post + `set` payload for the Great Feast leaderboard (preview only).
 //
 // Complies with the SocialDB standard:
 //   Method: `set` on `social.near` (or rehearsal contract on non-mainnet)
@@ -7,11 +7,15 @@
 //
 // Honesty & safety principles:
 //   - Preview mode by default: outputs formatted markdown and transaction payload without requiring credentials.
-//   - Zero fabricated data: metrics are pulled directly from live contract views or indexer endpoints.
+//   - Metrics come from the configured API (no default URL). If it is unreachable the script fails; it never
+//     substitutes data silently. `--fixture` prints invented sample data with a visible FIXTURE banner.
+//   - Snacc is testnet-only (`snacc-v001.testnet`); `$SNACC` has no monetary value. This script never signs or sends.
 //   - No banned wording anywhere in generated text or metadata.
 //
 // Usage:
-//   node social-leaderboard.mjs [--preview] [--api URL] [--account ID] [--out PATH]
+//   SNACC_API_BASE=<url> node social-leaderboard.mjs [--account ID] [--out PATH]
+//   node social-leaderboard.mjs --api <url> [--account ID] [--out PATH]
+//   node social-leaderboard.mjs --fixture [--account ID] [--out PATH]
 
 import { writeFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
@@ -34,7 +38,7 @@ export function formatSocialPost(params) {
     network = "NEAR Protocol",
   } = params;
 
-  const tempDisplay = (crucibleTempMk / 1000).toFixed(3);
+  const tempDisplay = String(crucibleTempMk); // the contract reports the temperature in mK already
   const vNorm = (BigInt(feastVolume) / 10n ** 18n).toLocaleString("en-US");
   const tNorm = (BigInt(feastTarget) / 10n ** 18n).toLocaleString("en-US");
 
@@ -67,7 +71,7 @@ export function formatSocialPost(params) {
     `${feederLines}\n` +
     colonySection +
     `\n---\n` +
-    `*Autonomous biological balance sheets on NEAR. Feed your strain or it gets harvested.*\n` +
+    `*Autonomous biological balance sheets on NEAR testnet. $SNACC on testnet has no monetary value.*\n` +
     `#Snacc #NEAR #GreatFeast #SocialDB #OnChainEconomy`
   );
 }
@@ -111,6 +115,10 @@ export async function fetchLiveLeaderboardData(apiBase) {
     fetch(`${base}/api/crucible/macro`, { signal: AbortSignal.timeout(10000) }).then((r) => r.ok ? r.json() : null).catch(() => null),
   ]);
 
+  if (!appetiteRes && !macroRes) {
+    throw new Error(`Leaderboard API at ${base} is unreachable or returned an error; refusing to emit a post with empty data.`);
+  }
+
   return {
     epoch: appetiteRes?.current_epoch ?? 0,
     crucibleTempMk: appetiteRes?.crucible_temp ?? macroRes?.crucibleTemp ?? 0,
@@ -122,32 +130,54 @@ export async function fetchLiveLeaderboardData(apiBase) {
   };
 }
 
+/** Sample data used ONLY with `--fixture`. Invented values for previewing the post format; not live state. */
+export const FIXTURE_DATA = {
+  epoch: 1,
+  crucibleTempMk: 650,
+  zone: "FEVER",
+  feastVolume: "2000000000000000000000",
+  feastTarget: "1000000000000000000000",
+  topFeeders: [{ account_id: "alice.testnet", amount: "2000000000000000000000" }],
+  network: "NEAR testnet (FIXTURE)",
+};
+
+export const FIXTURE_BANNER = "> **FIXTURE — invented sample data for previewing the format. Not live state.**\n\n";
+
+/**
+ * Resolves the API base from `--api` or the `SNACC_API_BASE` / `VITE_API_BASE` env vars.
+ * There is no default: a missing value throws a clear error.
+ */
+export function resolveApiBase(argv = [], env = {}) {
+  const base = arg(argv, "api", env.SNACC_API_BASE ?? env.VITE_API_BASE ?? "");
+  if (!base) {
+    throw new Error(
+      "No API base configured. Pass --api <URL> or set SNACC_API_BASE (or VITE_API_BASE). " +
+        "There is no default. To preview the format with invented sample data, pass --fixture.",
+    );
+  }
+  return base;
+}
+
 async function main() {
   const argv = process.argv.slice(2);
-  const api = arg(argv, "api", process.env.VITE_API_BASE ?? "https://8787-agq3sgcdseushmj4q73lv3xqea.instabox.tech");
-  const accountId = arg(argv, "account", "alkemis.near");
+  const useFixture = argv.includes("--fixture");
+  const accountId = arg(argv, "account", "example.testnet");
   const outPath = arg(argv, "out", "");
 
-  console.log(`Querying leaderboard from: ${api}...`);
   let data;
-  try {
-    data = await fetchLiveLeaderboardData(api);
-  } catch (e) {
-    console.warn("Using baseline fallback data: " + e.message);
-    data = {
-      epoch: 1,
-      crucibleTempMk: 650,
-      zone: "FEVER",
-      feastVolume: "196514539503915099101877",
-      feastTarget: "110708605367226947928032",
-      topFeeders: [{ account_id: "alkemis.near", amount: "196514539503915099101877" }],
-      network: "NEAR Protocol",
-    };
+  if (useFixture) {
+    console.warn("FIXTURE MODE: using invented sample data, not live state.");
+    data = FIXTURE_DATA;
+  } else {
+    const api = resolveApiBase(argv, process.env);
+    console.log(`Querying leaderboard from: ${api}...`);
+    data = await fetchLiveLeaderboardData(api); // throws if the API is unreachable: no silent fallback
   }
 
-  const postText = formatSocialPost(data);
+  const postText = (useFixture ? FIXTURE_BANNER : "") + formatSocialPost(data);
   const payload = buildSocialDbPayload(accountId, postText);
 
+  console.log("Preview only: nothing is signed or published. Snacc is testnet-only (SocialDB on testnet: v1.social08.testnet).");
   console.log("\n================ SOCIAL.NEAR POST PREVIEW ================");
   console.log(postText);
   console.log("==========================================================\n");
