@@ -23,11 +23,13 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PROJECT_ROOT = resolve(ROOT, "../.."); // NEAR-AI-Hackathon/ (reports/ lives here)
 const STRICT_HTTP = process.argv.includes("--strict-http");
-const RPC_TESTNET = ["https://near-testnet.drpc.org", "https://rpc.testnet.near.org"];
+// The near.org public RPC endpoints are deprecated and answer every call with JSON-RPC error
+// -429; they stay last only as a fallback. FastNEAR first.
+const RPC_TESTNET = ["https://rpc.testnet.fastnear.com", "https://near-testnet.drpc.org", "https://rpc.testnet.near.org"];
 // Regular RPC nodes garbage-collect transactions after a few epochs (~2-3 days), so evidence
 // tx hashes must be looked up on archival nodes.
-const RPC_TESTNET_ARCHIVAL = ["https://archival-rpc.testnet.near.org", "https://archival-rpc.testnet.fastnear.com"];
-const RPC_MAINNET = ["https://rpc.mainnet.near.org"];
+const RPC_TESTNET_ARCHIVAL = ["https://archival-rpc.testnet.fastnear.com", "https://archival-rpc.testnet.near.org"];
+const RPC_MAINNET = ["https://rpc.mainnet.fastnear.com", "https://rpc.mainnet.near.org"];
 
 const FILES = [
   "README.md",
@@ -121,7 +123,9 @@ async function rpcAny(urls, method, params, rounds = 4) {
     for (const url of urls) {
       try {
         const r = await rpc(url, method, params);
-        if (r && !r.error && !r.name) return r;
+        // A JSON-RPC error object has `code` (e.g. -429 deprecated) and, for NEAR errors, `name`:
+        // neither is a result, so try the next endpoint.
+        if (r && !r.error && !r.name && r.code === undefined) return r;
         last = r;
       } catch (e) {
         last = { error: String(e.message) };
